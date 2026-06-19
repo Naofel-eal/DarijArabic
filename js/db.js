@@ -34,6 +34,122 @@ const TENSES = [
 ];
 const GENDER_LABEL = { m: 'masc.', f: 'fém.', n: '' };
 
+// ============================================================
+//  Données de démarrage (seed) — FR / Arabe (MSA) / Darija
+//  Ajoutées une seule fois aux sections par défaut existantes.
+// ============================================================
+const SEED_WORDS = {
+  'Lettres': [
+    { fr: 'Alif', ar: 'أ', dz: 'أ' }, { fr: 'Ba', ar: 'ب', dz: 'ب' },
+    { fr: 'Ta', ar: 'ت', dz: 'ت' }, { fr: 'Tha', ar: 'ث', dz: 'ث' },
+    { fr: 'Jim', ar: 'ج', dz: 'ج' }, { fr: 'Ha', ar: 'ح', dz: 'ح' },
+    { fr: 'Kha', ar: 'خ', dz: 'خ' }, { fr: 'Dal', ar: 'د', dz: 'د' },
+    { fr: 'Ra', ar: 'ر', dz: 'ر' }, { fr: 'Sin', ar: 'س', dz: 'س' },
+  ],
+  'Nombres': [
+    { fr: 'un', ar: 'واحد', dz: 'واحد' }, { fr: 'deux', ar: 'اثنان', dz: 'جوج' },
+    { fr: 'trois', ar: 'ثلاثة', dz: 'تلاتة' }, { fr: 'quatre', ar: 'أربعة', dz: 'ربعة' },
+    { fr: 'cinq', ar: 'خمسة', dz: 'خمسة' }, { fr: 'six', ar: 'ستة', dz: 'ستة' },
+    { fr: 'sept', ar: 'سبعة', dz: 'سبعة' }, { fr: 'huit', ar: 'ثمانية', dz: 'تمنية' },
+    { fr: 'neuf', ar: 'تسعة', dz: 'تسعود' }, { fr: 'dix', ar: 'عشرة', dz: 'عشرة' },
+  ],
+  'Couleurs': [
+    { fr: 'rouge', ar: 'أحمر', dz: 'حمر' }, { fr: 'bleu', ar: 'أزرق', dz: 'زرق' },
+    { fr: 'vert', ar: 'أخضر', dz: 'خضر' }, { fr: 'jaune', ar: 'أصفر', dz: 'صفر' },
+    { fr: 'noir', ar: 'أسود', dz: 'كحل' }, { fr: 'blanc', ar: 'أبيض', dz: 'بيض' },
+    { fr: 'gris', ar: 'رمادي', dz: 'كري' }, { fr: 'marron', ar: 'بني', dz: 'قهوي' },
+  ],
+  'Animaux': [
+    { fr: 'chat', ar: 'قطة', dz: 'قطّ' }, { fr: 'chien', ar: 'كلب', dz: 'كلب' },
+    { fr: 'cheval', ar: 'حصان', dz: 'عود' }, { fr: 'âne', ar: 'حمار', dz: 'حمار' },
+    { fr: 'mouton', ar: 'خروف', dz: 'حولي' }, { fr: 'vache', ar: 'بقرة', dz: 'بڭرة' },
+    { fr: 'poule', ar: 'دجاجة', dz: 'دجاجة' }, { fr: 'chameau', ar: 'جمل', dz: 'جمل' },
+    { fr: 'oiseau', ar: 'طائر', dz: 'طير' }, { fr: 'poisson', ar: 'سمكة', dz: 'حوتة' },
+  ],
+  'Corps humain': [
+    { fr: 'tête', ar: 'رأس', dz: 'راس' }, { fr: 'œil', ar: 'عين', dz: 'عين' },
+    { fr: 'main', ar: 'يد', dz: 'يدّ' }, { fr: 'pied', ar: 'قدم', dz: 'رجل' },
+    { fr: 'bouche', ar: 'فم', dz: 'فمّ' }, { fr: 'nez', ar: 'أنف', dz: 'نيف' },
+    { fr: 'cheveux', ar: 'شعر', dz: 'شعر' }, { fr: 'ventre', ar: 'بطن', dz: 'كرش' },
+    { fr: 'cœur', ar: 'قلب', dz: 'قلب' }, { fr: 'oreille', ar: 'أذن', dz: 'ودن' },
+  ],
+  'Famille': [
+    { fr: 'père', ar: 'أب', dz: 'بّا' }, { fr: 'mère', ar: 'أم', dz: 'يمّا' },
+    { fr: 'frère', ar: 'أخ', dz: 'خو' }, { fr: 'sœur', ar: 'أخت', dz: 'أخت' },
+    { fr: 'fils', ar: 'ابن', dz: 'ولد' }, { fr: 'fille', ar: 'بنت', dz: 'بنت' },
+    { fr: 'grand-père', ar: 'جد', dz: 'جدّ' }, { fr: 'grand-mère', ar: 'جدة', dz: 'حنّة' },
+    { fr: 'mari', ar: 'زوج', dz: 'راجل' }, { fr: 'épouse', ar: 'زوجة', dz: 'مرا' },
+  ],
+  'Nourriture': [
+    { fr: 'pain', ar: 'خبز', dz: 'خبز' }, { fr: 'eau', ar: 'ماء', dz: 'ما' },
+    { fr: 'lait', ar: 'حليب', dz: 'حليب' }, { fr: 'viande', ar: 'لحم', dz: 'لحم' },
+    { fr: 'œuf', ar: 'بيضة', dz: 'بيضة' }, { fr: 'thé', ar: 'شاي', dz: 'أتاي' },
+    { fr: 'café', ar: 'قهوة', dz: 'قهوة' }, { fr: 'sucre', ar: 'سكر', dz: 'سكّر' },
+    { fr: 'sel', ar: 'ملح', dz: 'ملحة' }, { fr: 'pomme', ar: 'تفاحة', dz: 'تفاحة' },
+  ],
+};
+
+// Convertit une spec { tense: { cle: [ar, dz] } } en grille { tense: { cle: {ar,dz} } }
+function buildConj(spec) {
+  const out = {};
+  ['present', 'passe', 'futur'].forEach((t) => {
+    out[t] = {};
+    Object.entries(spec[t]).forEach(([k, pair]) => { out[t][k] = { ar: pair[0], dz: pair[1] }; });
+  });
+  return out;
+}
+
+const SEED_VERBS = {
+  'Verbes': [
+    {
+      fr: 'manger', ar_base: 'أكل', dz_base: 'كلا',
+      conj: buildConj({
+        present: {
+          '1sg_n': ['آكل', 'كناكل'], '2sg_m': ['تأكل', 'كتاكل'], '2sg_f': ['تأكلين', 'كتاكلي'],
+          '3sg_m': ['يأكل', 'كياكل'], '3sg_f': ['تأكل', 'كتاكل'], '1pl_n': ['نأكل', 'كناكلو'],
+          '2pl_m': ['تأكلون', 'كتاكلو'], '2pl_f': ['تأكلن', 'كتاكلو'],
+          '3pl_m': ['يأكلون', 'كياكلو'], '3pl_f': ['يأكلن', 'كياكلو'],
+        },
+        passe: {
+          '1sg_n': ['أكلتُ', 'كليت'], '2sg_m': ['أكلتَ', 'كليتي'], '2sg_f': ['أكلتِ', 'كليتي'],
+          '3sg_m': ['أكلَ', 'كلا'], '3sg_f': ['أكلت', 'كلات'], '1pl_n': ['أكلنا', 'كلينا'],
+          '2pl_m': ['أكلتم', 'كليتو'], '2pl_f': ['أكلتن', 'كليتو'],
+          '3pl_m': ['أكلوا', 'كلاو'], '3pl_f': ['أكلن', 'كلاو'],
+        },
+        futur: {
+          '1sg_n': ['سآكل', 'غادي ناكل'], '2sg_m': ['ستأكل', 'غادي تاكل'], '2sg_f': ['ستأكلين', 'غادي تاكلي'],
+          '3sg_m': ['سيأكل', 'غادي ياكل'], '3sg_f': ['ستأكل', 'غادي تاكل'], '1pl_n': ['سنأكل', 'غادي ناكلو'],
+          '2pl_m': ['ستأكلون', 'غادي تاكلو'], '2pl_f': ['ستأكلن', 'غادي تاكلو'],
+          '3pl_m': ['سيأكلون', 'غادي ياكلو'], '3pl_f': ['سيأكلن', 'غادي ياكلو'],
+        },
+      }),
+    },
+    {
+      fr: 'boire', ar_base: 'شرب', dz_base: 'شرب',
+      conj: buildConj({
+        present: {
+          '1sg_n': ['أشرب', 'كنشرب'], '2sg_m': ['تشرب', 'كتشرب'], '2sg_f': ['تشربين', 'كتشربي'],
+          '3sg_m': ['يشرب', 'كيشرب'], '3sg_f': ['تشرب', 'كتشرب'], '1pl_n': ['نشرب', 'كنشربو'],
+          '2pl_m': ['تشربون', 'كتشربو'], '2pl_f': ['تشربن', 'كتشربو'],
+          '3pl_m': ['يشربون', 'كيشربو'], '3pl_f': ['يشربن', 'كيشربو'],
+        },
+        passe: {
+          '1sg_n': ['شربتُ', 'شربت'], '2sg_m': ['شربتَ', 'شربتي'], '2sg_f': ['شربتِ', 'شربتي'],
+          '3sg_m': ['شربَ', 'شرب'], '3sg_f': ['شربت', 'شربات'], '1pl_n': ['شربنا', 'شربنا'],
+          '2pl_m': ['شربتم', 'شربتو'], '2pl_f': ['شربتن', 'شربتو'],
+          '3pl_m': ['شربوا', 'شربو'], '3pl_f': ['شربن', 'شربو'],
+        },
+        futur: {
+          '1sg_n': ['سأشرب', 'غادي نشرب'], '2sg_m': ['ستشرب', 'غادي تشرب'], '2sg_f': ['ستشربين', 'غادي تشربي'],
+          '3sg_m': ['سيشرب', 'غادي يشرب'], '3sg_f': ['ستشرب', 'غادي تشرب'], '1pl_n': ['سنشرب', 'غادي نشربو'],
+          '2pl_m': ['ستشربون', 'غادي تشربو'], '2pl_f': ['ستشربن', 'غادي تشربو'],
+          '3pl_m': ['سيشربون', 'غادي يشربو'], '3pl_f': ['سيشربن', 'غادي يشربو'],
+        },
+      }),
+    },
+  ],
+};
+
 // --------- Identifiants ----------
 function uid() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
@@ -60,13 +176,45 @@ let state = null;
 function init() {
   state = loadRaw();
   if (!state || !Array.isArray(state.sections)) {
-    state = { version: 1, sections: [], words: [] };
+    state = { version: 1, sections: [], words: [], seeded: false };
     DEFAULT_SECTIONS.forEach((s) => {
       state.sections.push({ id: uid(), name: s.name, type: s.type });
     });
-    persist();
   }
+  seedDefaultsIfNeeded();
+  persist();
   return state;
+}
+
+// Remplit une seule fois les sections par défaut encore présentes.
+function seedDefaultsIfNeeded() {
+  if (state.seeded) return;
+  const byName = {};
+  state.sections.forEach((s) => { byName[s.name] = s; });
+
+  Object.entries(SEED_WORDS).forEach(([sectionName, items]) => {
+    const sec = byName[sectionName];
+    if (!sec) return;
+    items.forEach((it) => {
+      state.words.push({
+        id: uid(), sectionId: sec.id, type: 'word', missCount: 0, seenCount: 0,
+        fr: it.fr, ar: it.ar, ar_tr: '', dz: it.dz, dz_tr: '',
+      });
+    });
+  });
+
+  Object.entries(SEED_VERBS).forEach(([sectionName, items]) => {
+    const sec = byName[sectionName];
+    if (!sec) return;
+    items.forEach((v) => {
+      state.words.push({
+        id: uid(), sectionId: sec.id, type: 'verb', missCount: 0, seenCount: 0,
+        fr: v.fr, ar_base: v.ar_base, ar_base_tr: '', dz_base: v.dz_base, dz_base_tr: '', conj: v.conj,
+      });
+    });
+  });
+
+  state.seeded = true;
 }
 
 function persist() {
