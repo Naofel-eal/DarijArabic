@@ -702,6 +702,12 @@ function viewSettings() {
   ]));
 
   els.app.appendChild(h('div', { class: 'settings-group' }, [
+    h('h3', {}, '🔄 Mise à jour'),
+    h('p', {}, 'Recharge l\'application avec la dernière version publiée. Tes données ne sont pas touchées.'),
+    h('button', { class: 'btn btn-primary btn-block', onClick: manualUpdate }, 'Mettre à jour maintenant'),
+  ]));
+
+  els.app.appendChild(h('div', { class: 'settings-group' }, [
     h('h3', {}, '⬇️ Exporter'),
     h('p', {}, 'Téléchargez une sauvegarde JSON de toutes vos données (sections, mots, conjugaisons).'),
     h('button', { class: 'btn btn-primary btn-block', onClick: doExport }, 'Exporter en JSON'),
@@ -808,9 +814,71 @@ const VIEWS = {
 DB.init();
 render();
 
-// Enregistrement du service worker (PWA / offline)
+// ============================================================
+//  PWA : enregistrement + détection de mise à jour
+// ============================================================
+let swReg = null;
+let swRefreshing = false;
+
+function showUpdateBanner(worker) {
+  if (document.getElementById('updateBanner')) return;
+  const banner = h('div', { id: 'updateBanner', class: 'update-banner' }, [
+    h('span', {}, '✨ Nouvelle version disponible'),
+    h('button', { class: 'btn-update', onClick: () => {
+      banner.querySelector('.btn-update').textContent = 'Rechargement…';
+      worker.postMessage({ type: 'SKIP_WAITING' });
+    } }, 'Recharger'),
+  ]);
+  document.body.appendChild(banner);
+}
+
+// Bouton manuel (écran Données) : force la récupération de la dernière version.
+async function manualUpdate() {
+  toast('Recherche de mise à jour…');
+  try {
+    if ('serviceWorker' in navigator) {
+      const reg = swReg || (await navigator.serviceWorker.getRegistration());
+      if (reg) {
+        try { await reg.update(); } catch (_) {}
+        if (reg.waiting) {
+          // Une nouvelle version est prête → on l'active, le reload suit (controllerchange).
+          reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+          return;
+        }
+      }
+    }
+    // Sinon : on vide le cache et on recharge pour garantir des fichiers frais.
+    if ('caches' in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((k) => caches.delete(k)));
+    }
+  } catch (_) { /* on recharge quand même */ }
+  window.location.reload();
+}
+
 if ('serviceWorker' in navigator) {
+  // Recharge la page une fois que le nouveau worker prend le contrôle.
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (swRefreshing) return;
+    swRefreshing = true;
+    window.location.reload();
+  });
+
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch((e) => console.warn('SW non enregistré', e));
+    navigator.serviceWorker.register('sw.js').then((reg) => {
+      swReg = reg;
+      // Une mise à jour est déjà en attente ?
+      if (reg.waiting && navigator.serviceWorker.controller) showUpdateBanner(reg.waiting);
+      // Détection d'une nouvelle version pendant l'utilisation.
+      reg.addEventListener('updatefound', () => {
+        const nw = reg.installing;
+        if (!nw) return;
+        nw.addEventListener('statechange', () => {
+          if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+            showUpdateBanner(nw);
+          }
+        });
+      });
+    }).catch((e) => console.warn('SW non enregistré', e));
   });
 }

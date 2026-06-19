@@ -32,6 +32,13 @@ jobs:
       - name: Configurer Pages
         uses: actions/configure-pages@v5
 
+      - name: Injecter la version dans le service worker
+        # Rend sw.js unique à chaque déploiement → le navigateur détecte la maj.
+        run: |
+          VERSION="${{ github.run_number }}-${GITHUB_SHA::7}"
+          sed -i "s/__BUILD_VERSION__/${VERSION}/g" sw.js
+          echo "Version du service worker : ${VERSION}"
+
       - name: Téléverser l'artefact du site
         uses: actions/upload-pages-artifact@v3
         with:
