@@ -123,6 +123,18 @@ function viewHome() {
     ])
   );
 
+  // Accès « Tous les mots » avec recherche
+  els.app.appendChild(
+    h('div', { class: 'allwords-card', onClick: () => navigate('allWords') }, [
+      h('div', { class: 'aw-ico' }, '🔍'),
+      h('div', { class: 'aw-body' }, [
+        h('div', { class: 'aw-title' }, 'Tous les mots'),
+        h('div', { class: 'aw-sub' }, 'Parcourir et rechercher dans tout le vocabulaire'),
+      ]),
+      h('div', { class: 'chev' }, '›'),
+    ])
+  );
+
   els.app.appendChild(h('div', { class: 'section-title' }, 'Sections'));
 
   const list = h('div', { class: 'section-list' });
@@ -219,8 +231,8 @@ function renderWordCard(w, section) {
         w.missCount > 0 ? h('span', { class: 'stat-pill' }, `raté ×${w.missCount}`) : null,
       ]),
       h('div', { class: 'word-langs' }, [
-        langRow('AR', w.ar_base, w.ar_base_tr, true),
-        langRow('DZ', w.dz_base, w.dz_base_tr, false),
+        langRow('AR', 'ar', w.ar_base, w.ar_base_tr, true),
+        langRow('MA', 'dz', w.dz_base, w.dz_base_tr, false),
       ]),
     ]);
   }
@@ -230,15 +242,15 @@ function renderWordCard(w, section) {
       w.missCount > 0 ? h('span', { class: 'stat-pill' }, `raté ×${w.missCount}`) : null,
     ]),
     h('div', { class: 'word-langs' }, [
-      langRow('AR', w.ar, w.ar_tr, true),
-      langRow('DZ', w.dz, w.dz_tr, false),
+      langRow('AR', 'ar', w.ar, w.ar_tr, true),
+      langRow('MA', 'dz', w.dz, w.dz_tr, false),
     ]),
   ]);
 }
 
-function langRow(tag, main, tr, isAr) {
+function langRow(label, cls, main, tr, isAr) {
   return h('div', { class: 'lang-row' }, [
-    h('span', { class: `lang-tag ${tag.toLowerCase()}` }, tag),
+    h('span', { class: `lang-tag ${cls}` }, label),
     h('span', { class: `lang-main ${isAr ? 'lang-ar ar-text' : ''}` }, main || '—'),
     tr ? h('span', { class: 'lang-tr' }, `(${tr})`) : null,
   ]);
@@ -279,6 +291,57 @@ function showRenameSection(section) {
 }
 
 // ============================================================
+//  ÉCRAN : TOUS LES MOTS (avec recherche)
+// ============================================================
+function viewAllWords() {
+  els.title.textContent = 'Tous les mots';
+  const secMap = {};
+  DB.getSections().forEach((s) => { secMap[s.id] = s; });
+  const allWords = DB.getAllWords();
+
+  const searchInput = h('input', {
+    type: 'search', class: 'search-input', autocomplete: 'off',
+    autocapitalize: 'none', placeholder: 'Rechercher (français, arabe, darija)…',
+  });
+  const results = h('div', { class: 'word-list' });
+
+  function fieldsOf(w) {
+    return w.type === 'verb'
+      ? [w.fr, w.ar_base, w.ar_base_tr, w.dz_base, w.dz_base_tr]
+      : [w.fr, w.ar, w.ar_tr, w.dz, w.dz_tr];
+  }
+
+  function renderResults() {
+    const q = normalize(searchInput.value);
+    clear(results);
+    let words = allWords;
+    if (q) words = words.filter((w) => fieldsOf(w).some((t) => normalize(t).includes(q)));
+
+    if (words.length === 0) {
+      results.appendChild(h('div', { class: 'empty-state' }, [
+        h('span', { class: 'emoji' }, '🔍'),
+        h('p', {}, allWords.length === 0
+          ? 'Aucun mot enregistré pour l\'instant. Ajoutez des mots dans vos sections.'
+          : 'Aucun résultat pour cette recherche.'),
+      ]));
+      return;
+    }
+    words.forEach((w) => {
+      const section = secMap[w.sectionId];
+      const card = renderWordCard(w, section || { id: w.sectionId, type: w.type });
+      card.insertBefore(h('div', { class: 'word-section-tag' }, section ? section.name : '—'), card.firstChild);
+      results.appendChild(card);
+    });
+  }
+
+  searchInput.addEventListener('input', renderResults);
+  els.app.appendChild(h('div', { class: 'search-bar' }, [searchInput]));
+  els.app.appendChild(results);
+  renderResults();
+  setTimeout(() => searchInput.focus(), 50);
+}
+
+// ============================================================
 //  ÉCRAN : FORMULAIRE MOT / VERBE
 // ============================================================
 function viewWordForm({ sectionId, wordId }) {
@@ -294,26 +357,22 @@ function viewWordForm({ sectionId, wordId }) {
 function renderWordFormSimple(section, existing) {
   const fr = inputField('Français', existing?.fr, { placeholder: 'ex. maison' });
   const ar = inputField('Arabe (MSA)', existing?.ar, { rtl: true, placeholder: 'بيت' });
-  const arTr = inputField('Translittération AR', existing?.ar_tr, { placeholder: 'bayt' });
   const dz = inputField('Darija', existing?.dz, { rtl: true, placeholder: 'دار' });
-  const dzTr = inputField('Translittération DZ', existing?.dz_tr, { placeholder: 'dar' });
 
   const form = h('div', { class: 'form' }, [
     h('div', { class: 'field' }, [h('label', {}, 'Français *'), fr.el]),
     h('div', { class: 'lang-block ar' }, [
       h('div', { class: 'lang-block-title' }, [h('span', { class: 'lang-tag ar' }, 'AR'), 'Arabe classique']),
       h('div', { class: 'field' }, [h('label', {}, 'Mot en arabe'), ar.el]),
-      h('div', { class: 'field' }, [h('label', {}, 'Translittération'), arTr.el]),
     ]),
     h('div', { class: 'lang-block dz' }, [
-      h('div', { class: 'lang-block-title' }, [h('span', { class: 'lang-tag dz' }, 'DZ'), 'Darija marocain']),
+      h('div', { class: 'lang-block-title' }, [h('span', { class: 'lang-tag dz' }, 'MA'), 'Darija marocain']),
       h('div', { class: 'field' }, [h('label', {}, 'Mot en darija'), dz.el]),
-      h('div', { class: 'field' }, [h('label', {}, 'Translittération'), dzTr.el]),
     ]),
     h('div', { class: 'btn-row' }, [
       existing ? h('button', { class: 'btn btn-danger', onClick: () => deleteWordFlow(existing, section) }, '🗑️') : null,
       h('button', { class: 'btn btn-primary btn-block', onClick: () => {
-        const data = { fr: fr.el.value, ar: ar.el.value, ar_tr: arTr.el.value, dz: dz.el.value, dz_tr: dzTr.el.value };
+        const data = { fr: fr.el.value, ar: ar.el.value, dz: dz.el.value };
         if (!data.fr.trim() && !data.ar.trim() && !data.dz.trim()) { toast('Renseignez au moins un champ'); return; }
         if (existing) { DB.updateWord(existing.id, data); toast('Mot modifié'); }
         else { DB.addWord(section.id, data); toast('Mot ajouté'); }
@@ -329,9 +388,7 @@ function renderVerbForm(section, existing) {
   const conj = existing?.conj || DB.emptyConjugation();
   const fr = inputField('Infinitif français', existing?.fr, { placeholder: 'ex. manger' });
   const arBase = inputField('Base AR', existing?.ar_base, { rtl: true, placeholder: 'أكل' });
-  const arBaseTr = inputField('Translit. AR', existing?.ar_base_tr, { placeholder: 'akala' });
-  const dzBase = inputField('Base DZ', existing?.dz_base, { rtl: true, placeholder: 'كلا' });
-  const dzBaseTr = inputField('Translit. DZ', existing?.dz_base_tr, { placeholder: 'kla' });
+  const dzBase = inputField('Base MA', existing?.dz_base, { rtl: true, placeholder: 'كلا' });
 
   // Stocke les inputs de conjugaison pour la lecture à l'enregistrement
   const conjInputs = {};
@@ -340,17 +397,11 @@ function renderVerbForm(section, existing) {
     h('div', { class: 'field' }, [h('label', {}, 'Infinitif français *'), fr.el]),
     h('div', { class: 'lang-block ar' }, [
       h('div', { class: 'lang-block-title' }, [h('span', { class: 'lang-tag ar' }, 'AR'), 'Racine / base']),
-      h('div', { class: 'field-pair' }, [
-        h('div', { class: 'field' }, [h('label', {}, 'Base'), arBase.el]),
-        h('div', { class: 'field' }, [h('label', {}, 'Translit.'), arBaseTr.el]),
-      ]),
+      h('div', { class: 'field' }, [h('label', {}, 'Base en arabe'), arBase.el]),
     ]),
     h('div', { class: 'lang-block dz' }, [
-      h('div', { class: 'lang-block-title' }, [h('span', { class: 'lang-tag dz' }, 'DZ'), 'Racine / base']),
-      h('div', { class: 'field-pair' }, [
-        h('div', { class: 'field' }, [h('label', {}, 'Base'), dzBase.el]),
-        h('div', { class: 'field' }, [h('label', {}, 'Translit.'), dzBaseTr.el]),
-      ]),
+      h('div', { class: 'lang-block-title' }, [h('span', { class: 'lang-tag dz' }, 'MA'), 'Racine / base']),
+      h('div', { class: 'field' }, [h('label', {}, 'Base en darija'), dzBase.el]),
     ]),
   ]);
 
@@ -362,14 +413,14 @@ function renderVerbForm(section, existing) {
         const cellKey = `${person.key}_${g}`;
         const cell = conj[tense.key]?.[cellKey] || { ar: '', dz: '' };
         const arIn = h('input', { type: 'text', dir: 'rtl', class: 'rtl', value: cell.ar || '', placeholder: 'AR' });
-        const dzIn = h('input', { type: 'text', dir: 'rtl', class: 'rtl', value: cell.dz || '', placeholder: 'DZ' });
+        const dzIn = h('input', { type: 'text', dir: 'rtl', class: 'rtl', value: cell.dz || '', placeholder: 'MA' });
         conjInputs[`${tense.key}.${cellKey}`] = { ar: arIn, dz: dzIn };
         const genderLabel = DB.GENDER_LABEL[g] ? ` — ${DB.GENDER_LABEL[g]}` : '';
         block.appendChild(h('div', { class: 'conj-row' }, [
           h('div', { class: 'conj-person' }, person.label + genderLabel),
           h('div', { class: 'conj-inputs' }, [
             h('div', { class: 'field' }, [h('label', {}, 'AR'), arIn]),
-            h('div', { class: 'field' }, [h('label', {}, 'DZ'), dzIn]),
+            h('div', { class: 'field' }, [h('label', {}, 'MA'), dzIn]),
           ]),
         ]));
       });
@@ -391,8 +442,8 @@ function renderVerbForm(section, existing) {
         });
       });
       const data = {
-        fr: fr.el.value, ar_base: arBase.el.value, ar_base_tr: arBaseTr.el.value,
-        dz_base: dzBase.el.value, dz_base_tr: dzBaseTr.el.value, conj: newConj,
+        fr: fr.el.value, ar_base: arBase.el.value,
+        dz_base: dzBase.el.value, conj: newConj,
       };
       if (!data.fr.trim() && !data.ar_base.trim() && !data.dz_base.trim()) { toast('Renseignez au moins un champ'); return; }
       if (existing) { DB.updateWord(existing.id, data); toast('Verbe modifié'); }
@@ -745,6 +796,7 @@ function confirmModal(message, onConfirm) {
 const VIEWS = {
   home: viewHome,
   section: viewSection,
+  allWords: viewAllWords,
   wordForm: viewWordForm,
   review: viewReview,
   settings: viewSettings,

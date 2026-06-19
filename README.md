@@ -9,8 +9,10 @@ sur l'appareil — aucun compte, aucun serveur.
 - **Sections** — 8 sections créées par défaut au premier lancement (Lettres, Nombres,
   Couleurs, Animaux, Corps humain, Famille, Nourriture, Verbes). Création de sections
   personnalisées (type « mots » ou « verbes »).
-- **Mots** — chaque entrée a 3 langues : Français / Arabe (MSA) + translittération /
-  Darija + translittération. Champs arabes en RTL natif (`dir="rtl"`).
+- **Mots** — chaque entrée a 3 langues : Français / Arabe (MSA, badge **AR**) /
+  Darija marocain (badge **MA**). Champs arabes en RTL natif (`dir="rtl"`).
+- **Tous les mots** — vue transversale avec recherche instantanée (français, arabe ou
+  darija) sur l'ensemble du vocabulaire ; un tap ouvre l'édition du mot.
 - **Verbes** — formulaire de conjugaison complet : 6 personnes × genre (masc./fém. aux
   2ᵉ et 3ᵉ personnes) × 3 temps (présent, passé, futur), en arabe **et** en darija.
 - **Mode révision** — 10 mots aléatoires (toutes sections ou une seule). L'app affiche
