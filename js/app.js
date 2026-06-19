@@ -357,7 +357,7 @@ function viewWordForm({ sectionId, wordId }) {
 function renderWordFormSimple(section, existing) {
   const fr = inputField('Français', existing?.fr, { placeholder: 'ex. maison' });
   const ar = inputField('Arabe (MSA)', existing?.ar, { rtl: true, placeholder: 'بيت' });
-  const dz = inputField('Darija', existing?.dz, { rtl: true, placeholder: 'دار' });
+  const dz = inputField('Darija', existing?.dz, { placeholder: 'dar' });
 
   const form = h('div', { class: 'form' }, [
     h('div', { class: 'field' }, [h('label', {}, 'Français *'), fr.el]),
@@ -388,7 +388,7 @@ function renderVerbForm(section, existing) {
   const conj = existing?.conj || DB.emptyConjugation();
   const fr = inputField('Infinitif français', existing?.fr, { placeholder: 'ex. manger' });
   const arBase = inputField('Base AR', existing?.ar_base, { rtl: true, placeholder: 'أكل' });
-  const dzBase = inputField('Base MA', existing?.dz_base, { rtl: true, placeholder: 'كلا' });
+  const dzBase = inputField('Base MA', existing?.dz_base, { placeholder: 'kla' });
 
   // Stocke les inputs de conjugaison pour la lecture à l'enregistrement
   const conjInputs = {};
@@ -413,7 +413,7 @@ function renderVerbForm(section, existing) {
         const cellKey = `${person.key}_${g}`;
         const cell = conj[tense.key]?.[cellKey] || { ar: '', dz: '' };
         const arIn = h('input', { type: 'text', dir: 'rtl', class: 'rtl', value: cell.ar || '', placeholder: 'AR' });
-        const dzIn = h('input', { type: 'text', dir: 'rtl', class: 'rtl', value: cell.dz || '', placeholder: 'MA' });
+        const dzIn = h('input', { type: 'text', value: cell.dz || '', placeholder: 'MA' });
         conjInputs[`${tense.key}.${cellKey}`] = { ar: arIn, dz: dzIn };
         const genderLabel = DB.GENDER_LABEL[g] ? ` — ${DB.GENDER_LABEL[g]}` : '';
         block.appendChild(h('div', { class: 'conj-row' }, [
@@ -577,7 +577,7 @@ function renderReviewQuestion() {
     h('span', { style: `width:${(s.index / s.questions.length) * 100}%` }),
   ]));
 
-  const isArPrompt = q.promptLang === 'ar' || q.promptLang === 'dz';
+  const isArPrompt = q.promptLang === 'ar';
   els.app.appendChild(h('div', { class: 'review-card' }, [
     h('div', { class: 'prompt-lang' }, `Traduisez depuis : ${LANG_LABEL[q.promptLang]}`),
     h('div', { class: `prompt-word ${isArPrompt ? 'ar-text' : ''}` }, it[q.promptLang]),
@@ -587,7 +587,7 @@ function renderReviewQuestion() {
   const inputs = {};
   const answersWrap = h('div', { class: 'review-answers' });
   targets.forEach((lang) => {
-    const rtl = lang === 'ar' || lang === 'dz';
+    const rtl = lang === 'ar';
     const input = h('input', {
       type: 'text', dir: rtl ? 'rtl' : 'ltr', class: rtl ? 'rtl' : '',
       placeholder: LANG_LABEL[lang], autocomplete: 'off', autocapitalize: 'none',
@@ -654,7 +654,7 @@ function renderReviewResults() {
     // Ligne du mot affiché
     lines.push(h('div', { class: 'correction-line' }, [
       h('strong', {}, `${LANG_LABEL[q.promptLang]} : `),
-      h('span', { class: (q.promptLang === 'ar' || q.promptLang === 'dz') ? 'ar-text' : '' }, it[q.promptLang]),
+      h('span', { class: q.promptLang === 'ar' ? 'ar-text' : '' }, it[q.promptLang]),
     ]));
     targets.forEach((lang) => {
       const good = matchAnswer(q.answers[lang], it[lang], it[lang + '_tr']);

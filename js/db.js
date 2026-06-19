@@ -39,7 +39,7 @@ const GENDER_LABEL = { m: 'masc.', f: 'fém.', n: '' };
 //  Seed versionné : on n'ajoute que les entrées manquantes
 //  (déduplication par contenu), sans toucher aux ajouts perso.
 // ============================================================
-const CURRENT_SEED_VERSION = 3;
+const CURRENT_SEED_VERSION = 4;
 
 // Génère les nombres 1→100, puis 200…900, 999, 1000…9000.
 function buildNumbers() {
@@ -55,12 +55,12 @@ function buildNumbers() {
   const arHund = { 100: 'مِئَة', 200: 'مِئَتَان', 300: 'ثَلَاثُمِئَة', 400: 'أَرْبَعُمِئَة', 500: 'خَمْسُمِئَة', 600: 'سِتُّمِئَة', 700: 'سَبْعُمِئَة', 800: 'ثَمَانُمِئَة', 900: 'تِسْعُمِئَة' };
   const arThou = { 1000: 'أَلْف', 2000: 'أَلْفَان', 3000: 'ثَلَاثَة آلَاف', 4000: 'أَرْبَعَة آلَاف', 5000: 'خَمْسَة آلَاف', 6000: 'سِتَّة آلَاف', 7000: 'سَبْعَة آلَاف', 8000: 'ثَمَانِيَة آلَاف', 9000: 'تِسْعَة آلَاف' };
 
-  const dzU = ['صفر', 'واحد', 'جوج', 'تلاتة', 'ربعة', 'خمسة', 'ستة', 'سبعة', 'تمنية', 'تسعود'];
-  const dzUc = ['', 'واحد', 'تنين', 'تلاتة', 'ربعة', 'خمسة', 'ستة', 'سبعة', 'تمنية', 'تسعة']; // unités en composé (21-99)
-  const dzTeen = ['عشرة', 'حضاش', 'طناش', 'تلطاش', 'ربعطاش', 'خمسطاش', 'سطاش', 'سبعطاش', 'تمنطاش', 'تسعطاش'];
-  const dzTens = { 2: 'عشرين', 3: 'تلاتين', 4: 'ربعين', 5: 'خمسين', 6: 'ستين', 7: 'سبعين', 8: 'تمانين', 9: 'تسعين' };
-  const dzHund = { 100: 'مية', 200: 'ميتين', 300: 'تلت مية', 400: 'ربع مية', 500: 'خمس مية', 600: 'ست مية', 700: 'سبع مية', 800: 'تمن مية', 900: 'تسع مية' };
-  const dzThou = { 1000: 'ألف', 2000: 'ألفين', 3000: 'تلت آلاف', 4000: 'ربع آلاف', 5000: 'خمس آلاف', 6000: 'ست آلاف', 7000: 'سبع آلاف', 8000: 'تمن آلاف', 9000: 'تسع آلاف' };
+  const dzU = ['zero', 'wahed', 'jouj', 'tlata', 'reb3a', 'khamsa', 'setta', 'seb3a', 'tmenya', 'tes3oud'];
+  const dzUc = ['', 'wahed', 'tnayn', 'tlata', 'reb3a', 'khamsa', 'setta', 'seb3a', 'tmenya', 'tes3a']; // unités en composé (21-99)
+  const dzTeen = ['3achra', '7dach', 'tnach', 'teltach', 'reb3tach', 'khamstach', 'settach', 'seb3tach', 'tmentach', 'tes3tach'];
+  const dzTens = { 2: '3achrin', 3: 'tlatin', 4: 'reb3in', 5: 'khamsin', 6: 'settin', 7: 'seb3in', 8: 'tmanin', 9: 'tes3in' };
+  const dzHund = { 100: 'mya', 200: 'mytin', 300: 'telt mya', 400: 'rbe3 mya', 500: 'khams mya', 600: 'sett mya', 700: 'sbe3 mya', 800: 'tmen mya', 900: 'tse3 mya' };
+  const dzThou = { 1000: 'alf', 2000: 'alfayn', 3000: 'telt alaf', 4000: 'rbe3 alaf', 5000: 'khams alaf', 6000: 'sett alaf', 7000: 'sbe3 alaf', 8000: 'tmen alaf', 9000: 'tse3 alaf' };
 
   function fr(n) {
     if (n >= 1000) return frThou[n];
@@ -85,13 +85,13 @@ function buildNumbers() {
   }
   function dz(n) {
     if (n >= 1000) return dzThou[n];
-    if (n === 999) return 'تسع مية وتسعة وتسعين';
+    if (n === 999) return 'tse3 mya w tes3a w tes3in';
     if (n >= 100) return dzHund[n];
     if (n < 10) return dzU[n];
     if (n < 20) return dzTeen[n - 10];
     const t = Math.floor(n / 10), u = n % 10;
     if (u === 0) return dzTens[t];
-    return dzUc[u] + ' و' + dzTens[t];
+    return dzUc[u] + ' w ' + dzTens[t];
   }
 
   const list = [];
@@ -103,55 +103,55 @@ function buildNumbers() {
 const SEED_WORDS = {
   // Alphabet arabe complet (le glyphe est identique en MSA et en darija).
   'Lettres': [
-    { fr: 'Alif', ar: 'أ', dz: 'أ' }, { fr: 'Ba', ar: 'ب', dz: 'ب' },
-    { fr: 'Ta', ar: 'ت', dz: 'ت' }, { fr: 'Tha', ar: 'ث', dz: 'ث' },
-    { fr: 'Jim', ar: 'ج', dz: 'ج' }, { fr: 'Ha', ar: 'ح', dz: 'ح' },
-    { fr: 'Kha', ar: 'خ', dz: 'خ' }, { fr: 'Dal', ar: 'د', dz: 'د' },
-    { fr: 'Dhal', ar: 'ذ', dz: 'ذ' }, { fr: 'Ra', ar: 'ر', dz: 'ر' },
-    { fr: 'Zay', ar: 'ز', dz: 'ز' }, { fr: 'Sin', ar: 'س', dz: 'س' },
-    { fr: 'Shin', ar: 'ش', dz: 'ش' }, { fr: 'Sad', ar: 'ص', dz: 'ص' },
-    { fr: 'Dad', ar: 'ض', dz: 'ض' }, { fr: 'Ṭa', ar: 'ط', dz: 'ط' },
-    { fr: 'Ẓa', ar: 'ظ', dz: 'ظ' }, { fr: 'Ayn', ar: 'ع', dz: 'ع' },
-    { fr: 'Ghayn', ar: 'غ', dz: 'غ' }, { fr: 'Fa', ar: 'ف', dz: 'ف' },
-    { fr: 'Qaf', ar: 'ق', dz: 'ق' }, { fr: 'Kaf', ar: 'ك', dz: 'ك' },
-    { fr: 'Lam', ar: 'ل', dz: 'ل' }, { fr: 'Mim', ar: 'م', dz: 'م' },
-    { fr: 'Nun', ar: 'ن', dz: 'ن' }, { fr: 'Hâ', ar: 'ه', dz: 'ه' },
-    { fr: 'Waw', ar: 'و', dz: 'و' }, { fr: 'Ya', ar: 'ي', dz: 'ي' },
+    { fr: 'Alif', ar: 'أ', dz: 'a' }, { fr: 'Ba', ar: 'ب', dz: 'b' },
+    { fr: 'Ta', ar: 'ت', dz: 't' }, { fr: 'Tha', ar: 'ث', dz: 'th' },
+    { fr: 'Jim', ar: 'ج', dz: 'j' }, { fr: 'Ha', ar: 'ح', dz: '7' },
+    { fr: 'Kha', ar: 'خ', dz: 'kh' }, { fr: 'Dal', ar: 'د', dz: 'd' },
+    { fr: 'Dhal', ar: 'ذ', dz: 'dh' }, { fr: 'Ra', ar: 'ر', dz: 'r' },
+    { fr: 'Zay', ar: 'ز', dz: 'z' }, { fr: 'Sin', ar: 'س', dz: 's' },
+    { fr: 'Shin', ar: 'ش', dz: 'ch' }, { fr: 'Sad', ar: 'ص', dz: 's' },
+    { fr: 'Dad', ar: 'ض', dz: 'd' }, { fr: 'Ṭa', ar: 'ط', dz: 't' },
+    { fr: 'Ẓa', ar: 'ظ', dz: 'dh' }, { fr: 'Ayn', ar: 'ع', dz: '3' },
+    { fr: 'Ghayn', ar: 'غ', dz: 'gh' }, { fr: 'Fa', ar: 'ف', dz: 'f' },
+    { fr: 'Qaf', ar: 'ق', dz: '9' }, { fr: 'Kaf', ar: 'ك', dz: 'k' },
+    { fr: 'Lam', ar: 'ل', dz: 'l' }, { fr: 'Mim', ar: 'م', dz: 'm' },
+    { fr: 'Nun', ar: 'ن', dz: 'n' }, { fr: 'Hâ', ar: 'ه', dz: 'h' },
+    { fr: 'Waw', ar: 'و', dz: 'w' }, { fr: 'Ya', ar: 'ي', dz: 'y' },
   ],
   'Nombres': buildNumbers(),
   'Couleurs': [
-    { fr: 'rouge', ar: 'أَحْمَر', dz: 'حمر' }, { fr: 'bleu', ar: 'أَزْرَق', dz: 'زرق' },
-    { fr: 'vert', ar: 'أَخْضَر', dz: 'خضر' }, { fr: 'jaune', ar: 'أَصْفَر', dz: 'صفر' },
-    { fr: 'noir', ar: 'أَسْوَد', dz: 'كحل' }, { fr: 'blanc', ar: 'أَبْيَض', dz: 'بيض' },
-    { fr: 'gris', ar: 'رَمَادِيّ', dz: 'كري' }, { fr: 'marron', ar: 'بُنِّيّ', dz: 'قهوي' },
+    { fr: 'rouge', ar: 'أَحْمَر', dz: '7mer' }, { fr: 'bleu', ar: 'أَزْرَق', dz: 'zre9' },
+    { fr: 'vert', ar: 'أَخْضَر', dz: 'khder' }, { fr: 'jaune', ar: 'أَصْفَر', dz: 'sfer' },
+    { fr: 'noir', ar: 'أَسْوَد', dz: 'k7el' }, { fr: 'blanc', ar: 'أَبْيَض', dz: 'byed' },
+    { fr: 'gris', ar: 'رَمَادِيّ', dz: 'gri' }, { fr: 'marron', ar: 'بُنِّيّ', dz: '9ehwi' },
   ],
   'Animaux': [
-    { fr: 'chat', ar: 'قِطَّة', dz: 'قطّ' }, { fr: 'chien', ar: 'كَلْب', dz: 'كلب' },
-    { fr: 'cheval', ar: 'حِصَان', dz: 'عود' }, { fr: 'âne', ar: 'حِمَار', dz: 'حمار' },
-    { fr: 'mouton', ar: 'خَرُوف', dz: 'حولي' }, { fr: 'vache', ar: 'بَقَرَة', dz: 'بڭرة' },
-    { fr: 'poule', ar: 'دَجَاجَة', dz: 'دجاجة' }, { fr: 'chameau', ar: 'جَمَل', dz: 'جمل' },
-    { fr: 'oiseau', ar: 'طَائِر', dz: 'طير' }, { fr: 'poisson', ar: 'سَمَكَة', dz: 'حوتة' },
+    { fr: 'chat', ar: 'قِطَّة', dz: '9ett' }, { fr: 'chien', ar: 'كَلْب', dz: 'kelb' },
+    { fr: 'cheval', ar: 'حِصَان', dz: '3oud' }, { fr: 'âne', ar: 'حِمَار', dz: '7mar' },
+    { fr: 'mouton', ar: 'خَرُوف', dz: '7awli' }, { fr: 'vache', ar: 'بَقَرَة', dz: 'begra' },
+    { fr: 'poule', ar: 'دَجَاجَة', dz: 'djaja' }, { fr: 'chameau', ar: 'جَمَل', dz: 'jmel' },
+    { fr: 'oiseau', ar: 'طَائِر', dz: 'tir' }, { fr: 'poisson', ar: 'سَمَكَة', dz: '7outa' },
   ],
   'Corps humain': [
-    { fr: 'tête', ar: 'رَأْس', dz: 'راس' }, { fr: 'œil', ar: 'عَيْن', dz: 'عين' },
-    { fr: 'main', ar: 'يَد', dz: 'يدّ' }, { fr: 'pied', ar: 'قَدَم', dz: 'رجل' },
-    { fr: 'bouche', ar: 'فَم', dz: 'فمّ' }, { fr: 'nez', ar: 'أَنْف', dz: 'نيف' },
-    { fr: 'cheveux', ar: 'شَعْر', dz: 'شعر' }, { fr: 'ventre', ar: 'بَطْن', dz: 'كرش' },
-    { fr: 'cœur', ar: 'قَلْب', dz: 'قلب' }, { fr: 'oreille', ar: 'أُذُن', dz: 'ودن' },
+    { fr: 'tête', ar: 'رَأْس', dz: 'ras' }, { fr: 'œil', ar: 'عَيْن', dz: '3in' },
+    { fr: 'main', ar: 'يَد', dz: 'yedd' }, { fr: 'pied', ar: 'قَدَم', dz: 'rjel' },
+    { fr: 'bouche', ar: 'فَم', dz: 'fomm' }, { fr: 'nez', ar: 'أَنْف', dz: 'nif' },
+    { fr: 'cheveux', ar: 'شَعْر', dz: 'ch3ar' }, { fr: 'ventre', ar: 'بَطْن', dz: 'kerch' },
+    { fr: 'cœur', ar: 'قَلْب', dz: '9elb' }, { fr: 'oreille', ar: 'أُذُن', dz: 'wden' },
   ],
   'Famille': [
-    { fr: 'père', ar: 'أَب', dz: 'بّا' }, { fr: 'mère', ar: 'أُمّ', dz: 'يمّا' },
-    { fr: 'frère', ar: 'أَخ', dz: 'خو' }, { fr: 'sœur', ar: 'أُخْت', dz: 'أخت' },
-    { fr: 'fils', ar: 'اِبْن', dz: 'ولد' }, { fr: 'fille', ar: 'بِنْت', dz: 'بنت' },
-    { fr: 'grand-père', ar: 'جَدّ', dz: 'جدّ' }, { fr: 'grand-mère', ar: 'جَدَّة', dz: 'حنّة' },
-    { fr: 'mari', ar: 'زَوْج', dz: 'راجل' }, { fr: 'épouse', ar: 'زَوْجَة', dz: 'مرا' },
+    { fr: 'père', ar: 'أَب', dz: 'bba' }, { fr: 'mère', ar: 'أُمّ', dz: 'yemma' },
+    { fr: 'frère', ar: 'أَخ', dz: 'khou' }, { fr: 'sœur', ar: 'أُخْت', dz: 'okht' },
+    { fr: 'fils', ar: 'اِبْن', dz: 'weld' }, { fr: 'fille', ar: 'بِنْت', dz: 'bent' },
+    { fr: 'grand-père', ar: 'جَدّ', dz: 'jedd' }, { fr: 'grand-mère', ar: 'جَدَّة', dz: '7enna' },
+    { fr: 'mari', ar: 'زَوْج', dz: 'rajel' }, { fr: 'épouse', ar: 'زَوْجَة', dz: 'mra' },
   ],
   'Nourriture': [
-    { fr: 'pain', ar: 'خُبْز', dz: 'خبز' }, { fr: 'eau', ar: 'مَاء', dz: 'ما' },
-    { fr: 'lait', ar: 'حَلِيب', dz: 'حليب' }, { fr: 'viande', ar: 'لَحْم', dz: 'لحم' },
-    { fr: 'œuf', ar: 'بَيْضَة', dz: 'بيضة' }, { fr: 'thé', ar: 'شَاي', dz: 'أتاي' },
-    { fr: 'café', ar: 'قَهْوَة', dz: 'قهوة' }, { fr: 'sucre', ar: 'سُكَّر', dz: 'سكّر' },
-    { fr: 'sel', ar: 'مِلْح', dz: 'ملحة' }, { fr: 'pomme', ar: 'تُفَّاحَة', dz: 'تفاحة' },
+    { fr: 'pain', ar: 'خُبْز', dz: 'khobz' }, { fr: 'eau', ar: 'مَاء', dz: 'ma' },
+    { fr: 'lait', ar: 'حَلِيب', dz: '7lib' }, { fr: 'viande', ar: 'لَحْم', dz: 'l7em' },
+    { fr: 'œuf', ar: 'بَيْضَة', dz: 'bida' }, { fr: 'thé', ar: 'شَاي', dz: 'atay' },
+    { fr: 'café', ar: 'قَهْوَة', dz: '9ehwa' }, { fr: 'sucre', ar: 'سُكَّر', dz: 'sokkar' },
+    { fr: 'sel', ar: 'مِلْح', dz: 'mel7a' }, { fr: 'pomme', ar: 'تُفَّاحَة', dz: 'teffa7a' },
   ],
 };
 
@@ -168,48 +168,48 @@ function buildConj(spec) {
 const SEED_VERBS = {
   'Verbes': [
     {
-      fr: 'manger', ar_base: 'أَكَلَ', dz_base: 'كلا',
+      fr: 'manger', ar_base: 'أَكَلَ', dz_base: 'kla',
       conj: buildConj({
         present: {
-          '1sg_n': ['آكُلُ', 'كناكل'], '2sg_m': ['تَأْكُلُ', 'كتاكل'], '2sg_f': ['تَأْكُلِينَ', 'كتاكلي'],
-          '3sg_m': ['يَأْكُلُ', 'كياكل'], '3sg_f': ['تَأْكُلُ', 'كتاكل'], '1pl_n': ['نَأْكُلُ', 'كناكلو'],
-          '2pl_m': ['تَأْكُلُونَ', 'كتاكلو'], '2pl_f': ['تَأْكُلْنَ', 'كتاكلو'],
-          '3pl_m': ['يَأْكُلُونَ', 'كياكلو'], '3pl_f': ['يَأْكُلْنَ', 'كياكلو'],
+          '1sg_n': ['آكُلُ', 'kanakol'], '2sg_m': ['تَأْكُلُ', 'katakol'], '2sg_f': ['تَأْكُلِينَ', 'katakli'],
+          '3sg_m': ['يَأْكُلُ', 'kayakol'], '3sg_f': ['تَأْكُلُ', 'katakol'], '1pl_n': ['نَأْكُلُ', 'kanaklou'],
+          '2pl_m': ['تَأْكُلُونَ', 'kataklou'], '2pl_f': ['تَأْكُلْنَ', 'kataklou'],
+          '3pl_m': ['يَأْكُلُونَ', 'kayaklou'], '3pl_f': ['يَأْكُلْنَ', 'kayaklou'],
         },
         passe: {
-          '1sg_n': ['أَكَلْتُ', 'كليت'], '2sg_m': ['أَكَلْتَ', 'كليتي'], '2sg_f': ['أَكَلْتِ', 'كليتي'],
-          '3sg_m': ['أَكَلَ', 'كلا'], '3sg_f': ['أَكَلَتْ', 'كلات'], '1pl_n': ['أَكَلْنَا', 'كلينا'],
-          '2pl_m': ['أَكَلْتُمْ', 'كليتو'], '2pl_f': ['أَكَلْتُنَّ', 'كليتو'],
-          '3pl_m': ['أَكَلُوا', 'كلاو'], '3pl_f': ['أَكَلْنَ', 'كلاو'],
+          '1sg_n': ['أَكَلْتُ', 'klit'], '2sg_m': ['أَكَلْتَ', 'kliti'], '2sg_f': ['أَكَلْتِ', 'kliti'],
+          '3sg_m': ['أَكَلَ', 'kla'], '3sg_f': ['أَكَلَتْ', 'klat'], '1pl_n': ['أَكَلْنَا', 'klina'],
+          '2pl_m': ['أَكَلْتُمْ', 'klitou'], '2pl_f': ['أَكَلْتُنَّ', 'klitou'],
+          '3pl_m': ['أَكَلُوا', 'klaw'], '3pl_f': ['أَكَلْنَ', 'klaw'],
         },
         futur: {
-          '1sg_n': ['سَآكُلُ', 'غادي ناكل'], '2sg_m': ['سَتَأْكُلُ', 'غادي تاكل'], '2sg_f': ['سَتَأْكُلِينَ', 'غادي تاكلي'],
-          '3sg_m': ['سَيَأْكُلُ', 'غادي ياكل'], '3sg_f': ['سَتَأْكُلُ', 'غادي تاكل'], '1pl_n': ['سَنَأْكُلُ', 'غادي ناكلو'],
-          '2pl_m': ['سَتَأْكُلُونَ', 'غادي تاكلو'], '2pl_f': ['سَتَأْكُلْنَ', 'غادي تاكلو'],
-          '3pl_m': ['سَيَأْكُلُونَ', 'غادي ياكلو'], '3pl_f': ['سَيَأْكُلْنَ', 'غادي ياكلو'],
+          '1sg_n': ['سَآكُلُ', 'ghadi nakol'], '2sg_m': ['سَتَأْكُلُ', 'ghadi takol'], '2sg_f': ['سَتَأْكُلِينَ', 'ghadi takli'],
+          '3sg_m': ['سَيَأْكُلُ', 'ghadi yakol'], '3sg_f': ['سَتَأْكُلُ', 'ghadi takol'], '1pl_n': ['سَنَأْكُلُ', 'ghadi naklou'],
+          '2pl_m': ['سَتَأْكُلُونَ', 'ghadi taklou'], '2pl_f': ['سَتَأْكُلْنَ', 'ghadi taklou'],
+          '3pl_m': ['سَيَأْكُلُونَ', 'ghadi yaklou'], '3pl_f': ['سَيَأْكُلْنَ', 'ghadi yaklou'],
         },
       }),
     },
     {
-      fr: 'boire', ar_base: 'شَرِبَ', dz_base: 'شرب',
+      fr: 'boire', ar_base: 'شَرِبَ', dz_base: 'chreb',
       conj: buildConj({
         present: {
-          '1sg_n': ['أَشْرَبُ', 'كنشرب'], '2sg_m': ['تَشْرَبُ', 'كتشرب'], '2sg_f': ['تَشْرَبِينَ', 'كتشربي'],
-          '3sg_m': ['يَشْرَبُ', 'كيشرب'], '3sg_f': ['تَشْرَبُ', 'كتشرب'], '1pl_n': ['نَشْرَبُ', 'كنشربو'],
-          '2pl_m': ['تَشْرَبُونَ', 'كتشربو'], '2pl_f': ['تَشْرَبْنَ', 'كتشربو'],
-          '3pl_m': ['يَشْرَبُونَ', 'كيشربو'], '3pl_f': ['يَشْرَبْنَ', 'كيشربو'],
+          '1sg_n': ['أَشْرَبُ', 'kanchreb'], '2sg_m': ['تَشْرَبُ', 'katchreb'], '2sg_f': ['تَشْرَبِينَ', 'katchrebi'],
+          '3sg_m': ['يَشْرَبُ', 'kaychreb'], '3sg_f': ['تَشْرَبُ', 'katchreb'], '1pl_n': ['نَشْرَبُ', 'kanchrebou'],
+          '2pl_m': ['تَشْرَبُونَ', 'katchrebou'], '2pl_f': ['تَشْرَبْنَ', 'katchrebou'],
+          '3pl_m': ['يَشْرَبُونَ', 'kaychrebou'], '3pl_f': ['يَشْرَبْنَ', 'kaychrebou'],
         },
         passe: {
-          '1sg_n': ['شَرِبْتُ', 'شربت'], '2sg_m': ['شَرِبْتَ', 'شربتي'], '2sg_f': ['شَرِبْتِ', 'شربتي'],
-          '3sg_m': ['شَرِبَ', 'شرب'], '3sg_f': ['شَرِبَتْ', 'شربات'], '1pl_n': ['شَرِبْنَا', 'شربنا'],
-          '2pl_m': ['شَرِبْتُمْ', 'شربتو'], '2pl_f': ['شَرِبْتُنَّ', 'شربتو'],
-          '3pl_m': ['شَرِبُوا', 'شربو'], '3pl_f': ['شَرِبْنَ', 'شربو'],
+          '1sg_n': ['شَرِبْتُ', 'chrebt'], '2sg_m': ['شَرِبْتَ', 'chrebti'], '2sg_f': ['شَرِبْتِ', 'chrebti'],
+          '3sg_m': ['شَرِبَ', 'chreb'], '3sg_f': ['شَرِبَتْ', 'chrebat'], '1pl_n': ['شَرِبْنَا', 'chrebna'],
+          '2pl_m': ['شَرِبْتُمْ', 'chrebtou'], '2pl_f': ['شَرِبْتُنَّ', 'chrebtou'],
+          '3pl_m': ['شَرِبُوا', 'chrebou'], '3pl_f': ['شَرِبْنَ', 'chrebou'],
         },
         futur: {
-          '1sg_n': ['سَأَشْرَبُ', 'غادي نشرب'], '2sg_m': ['سَتَشْرَبُ', 'غادي تشرب'], '2sg_f': ['سَتَشْرَبِينَ', 'غادي تشربي'],
-          '3sg_m': ['سَيَشْرَبُ', 'غادي يشرب'], '3sg_f': ['سَتَشْرَبُ', 'غادي تشرب'], '1pl_n': ['سَنَشْرَبُ', 'غادي نشربو'],
-          '2pl_m': ['سَتَشْرَبُونَ', 'غادي تشربو'], '2pl_f': ['سَتَشْرَبْنَ', 'غادي تشربو'],
-          '3pl_m': ['سَيَشْرَبُونَ', 'غادي يشربو'], '3pl_f': ['سَيَشْرَبْنَ', 'غادي يشربو'],
+          '1sg_n': ['سَأَشْرَبُ', 'ghadi nchreb'], '2sg_m': ['سَتَشْرَبُ', 'ghadi tchreb'], '2sg_f': ['سَتَشْرَبِينَ', 'ghadi tchrebi'],
+          '3sg_m': ['سَيَشْرَبُ', 'ghadi ychreb'], '3sg_f': ['سَتَشْرَبُ', 'ghadi tchreb'], '1pl_n': ['سَنَشْرَبُ', 'ghadi nchrebou'],
+          '2pl_m': ['سَتَشْرَبُونَ', 'ghadi tchrebou'], '2pl_f': ['سَتَشْرَبْنَ', 'ghadi tchrebou'],
+          '3pl_m': ['سَيَشْرَبُونَ', 'ghadi ychrebou'], '3pl_f': ['سَيَشْرَبْنَ', 'ghadi ychrebou'],
         },
       }),
     },
@@ -253,9 +253,9 @@ function init() {
 }
 
 // Réconcilie le seed avec les sections par défaut encore présentes.
-// Upsert par `fr` : met à jour l'arabe (MSA) d'un mot déjà là (ex. ajout
-// des voyelles) sans créer de doublon, ajoute les entrées manquantes, et
-// préserve le darija ainsi que les mots ajoutés par l'utilisateur.
+// Upsert par `fr` : met à jour en place l'arabe (MSA vocalisé) ET le darija
+// (latin) d'un mot déjà présent, sans créer de doublon, ajoute les entrées
+// manquantes, et préserve les mots ajoutés par l'utilisateur.
 function seedDefaultsIfNeeded() {
   if ((state.seedVersion || 0) >= CURRENT_SEED_VERSION) return;
   const byName = {};
@@ -270,8 +270,8 @@ function seedDefaultsIfNeeded() {
     items.forEach((it) => {
       const cur = byFr[it.fr];
       if (cur) {
-        cur.ar = it.ar;            // applique les voyelles / met à jour le MSA
-        if (!cur.dz) cur.dz = it.dz;
+        cur.ar = it.ar;   // MSA vocalisé
+        cur.dz = it.dz;   // darija en latin
       } else {
         const w = {
           id: uid(), sectionId: sec.id, type: 'word', missCount: 0, seenCount: 0,
@@ -292,8 +292,9 @@ function seedDefaultsIfNeeded() {
     items.forEach((v) => {
       const cur = byFr[v.fr];
       if (cur) {
-        cur.ar_base = v.ar_base;                       // MSA vocalisé
-        cur.conj = mergeConjAr(cur.conj, v.conj);      // applique le MSA, garde le darija
+        cur.ar_base = v.ar_base;   // MSA vocalisé
+        cur.dz_base = v.dz_base;   // darija en latin
+        cur.conj = v.conj;
       } else {
         const w = {
           id: uid(), sectionId: sec.id, type: 'verb', missCount: 0, seenCount: 0,
@@ -307,20 +308,6 @@ function seedDefaultsIfNeeded() {
 
   state.seedVersion = CURRENT_SEED_VERSION;
   state.seeded = true; // compat ancienne clé
-}
-
-// Fusionne une conjugaison : prend le MSA (ar) du seed, conserve le darija (dz) existant.
-function mergeConjAr(existing, seed) {
-  if (!existing) return seed;
-  const out = {};
-  ['present', 'passe', 'futur'].forEach((t) => {
-    out[t] = {};
-    Object.keys(seed[t]).forEach((k) => {
-      const ex = existing[t] && existing[t][k];
-      out[t][k] = { ar: seed[t][k].ar, dz: ex && ex.dz ? ex.dz : seed[t][k].dz };
-    });
-  });
-  return out;
 }
 
 function persist() {
