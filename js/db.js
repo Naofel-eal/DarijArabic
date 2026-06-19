@@ -39,7 +39,7 @@ const GENDER_LABEL = { m: 'masc.', f: 'fém.', n: '' };
 //  Seed versionné : on n'ajoute que les entrées manquantes
 //  (déduplication par contenu), sans toucher aux ajouts perso.
 // ============================================================
-const CURRENT_SEED_VERSION = 5;
+const CURRENT_SEED_VERSION = 6;
 
 // Génère les nombres 1→100, puis 200…900, 999, 1000…9000.
 function buildNumbers() {
@@ -55,11 +55,11 @@ function buildNumbers() {
   const arHund = { 100: 'مِئَة', 200: 'مِئَتَان', 300: 'ثَلَاثُمِئَة', 400: 'أَرْبَعُمِئَة', 500: 'خَمْسُمِئَة', 600: 'سِتُّمِئَة', 700: 'سَبْعُمِئَة', 800: 'ثَمَانُمِئَة', 900: 'تِسْعُمِئَة' };
   const arThou = { 1000: 'أَلْف', 2000: 'أَلْفَان', 3000: 'ثَلَاثَة آلَاف', 4000: 'أَرْبَعَة آلَاف', 5000: 'خَمْسَة آلَاف', 6000: 'سِتَّة آلَاف', 7000: 'سَبْعَة آلَاف', 8000: 'ثَمَانِيَة آلَاف', 9000: 'تِسْعَة آلَاف' };
 
-  const dzU = ['zero', 'wahed', 'jouj', 'tlatah', 'reb3ah', 'khamsah', 'settah', 'seb3ah', 'tmenyah', 'tes3oud'];
-  const dzUc = ['', 'wahed', 'tnayn', 'tlatah', 'reb3ah', 'khamsah', 'settah', 'seb3ah', 'tmenyah', 'tes3ah']; // unités en composé (21-99)
-  const dzTeen = ['3achrah', 'hdach', 'tnach', 'teltach', 'reb3tach', 'khamstach', 'settach', 'seb3tach', 'tmentach', 'tes3tach'];
+  const dzU = ['zero', 'wahed', 'jouj', 'tlata', 'reb3a', 'khamsa', 'setta', 'seb3a', 'tmenya', 'tes3oud'];
+  const dzUc = ['', 'wahed', 'tnayn', 'tlata', 'reb3a', 'khamsa', 'setta', 'seb3a', 'tmenya', 'tes3a']; // unités en composé (21-99)
+  const dzTeen = ['3achra', '7dach', 'tnach', 'teltach', 'reb3tach', 'khamstach', 'settach', 'seb3tach', 'tmentach', 'tes3tach'];
   const dzTens = { 2: '3achrin', 3: 'tlatin', 4: 'reb3in', 5: 'khamsin', 6: 'settin', 7: 'seb3in', 8: 'tmanin', 9: 'tes3in' };
-  const dzHund = { 100: 'myah', 200: 'mytin', 300: 'telt myah', 400: 'rbe3 myah', 500: 'khams myah', 600: 'sett myah', 700: 'sbe3 myah', 800: 'tmen myah', 900: 'tse3 myah' };
+  const dzHund = { 100: 'mya', 200: 'mytin', 300: 'telt mya', 400: 'rbe3 mya', 500: 'khams mya', 600: 'sett mya', 700: 'sbe3 mya', 800: 'tmen mya', 900: 'tse3 mya' };
   const dzThou = { 1000: 'alf', 2000: 'alfayn', 3000: 'telt alaf', 4000: 'rbe3 alaf', 5000: 'khams alaf', 6000: 'sett alaf', 7000: 'sbe3 alaf', 8000: 'tmen alaf', 9000: 'tse3 alaf' };
 
   function fr(n) {
@@ -85,7 +85,7 @@ function buildNumbers() {
   }
   function dz(n) {
     if (n >= 1000) return dzThou[n];
-    if (n === 999) return 'tse3 myah w tes3ah w tes3in';
+    if (n === 999) return 'tse3 mya w tes3a w tes3in';
     if (n >= 100) return dzHund[n];
     if (n < 10) return dzU[n];
     if (n < 20) return dzTeen[n - 10];
@@ -105,7 +105,7 @@ const SEED_WORDS = {
   'Lettres': [
     { fr: 'Alif', ar: 'أ', dz: 'a' }, { fr: 'Ba', ar: 'ب', dz: 'b' },
     { fr: 'Ta', ar: 'ت', dz: 't' }, { fr: 'Tha', ar: 'ث', dz: 'th' },
-    { fr: 'Jim', ar: 'ج', dz: 'j' }, { fr: 'Ha', ar: 'ح', dz: 'h' },
+    { fr: 'Jim', ar: 'ج', dz: 'j' }, { fr: 'Ha', ar: 'ح', dz: '7' },
     { fr: 'Kha', ar: 'خ', dz: 'kh' }, { fr: 'Dal', ar: 'د', dz: 'd' },
     { fr: 'Dhal', ar: 'ذ', dz: 'dh' }, { fr: 'Ra', ar: 'ر', dz: 'r' },
     { fr: 'Zay', ar: 'ز', dz: 'z' }, { fr: 'Sin', ar: 'س', dz: 's' },
@@ -113,45 +113,45 @@ const SEED_WORDS = {
     { fr: 'Dad', ar: 'ض', dz: 'd' }, { fr: 'Ṭa', ar: 'ط', dz: 't' },
     { fr: 'Ẓa', ar: 'ظ', dz: 'dh' }, { fr: 'Ayn', ar: 'ع', dz: '3' },
     { fr: 'Ghayn', ar: 'غ', dz: 'gh' }, { fr: 'Fa', ar: 'ف', dz: 'f' },
-    { fr: 'Qaf', ar: 'ق', dz: 'q' }, { fr: 'Kaf', ar: 'ك', dz: 'k' },
+    { fr: 'Qaf', ar: 'ق', dz: '9' }, { fr: 'Kaf', ar: 'ك', dz: 'k' },
     { fr: 'Lam', ar: 'ل', dz: 'l' }, { fr: 'Mim', ar: 'م', dz: 'm' },
     { fr: 'Nun', ar: 'ن', dz: 'n' }, { fr: 'Hâ', ar: 'ه', dz: 'h' },
     { fr: 'Waw', ar: 'و', dz: 'w' }, { fr: 'Ya', ar: 'ي', dz: 'y' },
   ],
   'Nombres': buildNumbers(),
   'Couleurs': [
-    { fr: 'rouge', ar: 'أَحْمَر', dz: 'hmer' }, { fr: 'bleu', ar: 'أَزْرَق', dz: 'zreq' },
+    { fr: 'rouge', ar: 'أَحْمَر', dz: '7mer' }, { fr: 'bleu', ar: 'أَزْرَق', dz: 'zre9' },
     { fr: 'vert', ar: 'أَخْضَر', dz: 'khder' }, { fr: 'jaune', ar: 'أَصْفَر', dz: 'sfer' },
-    { fr: 'noir', ar: 'أَسْوَد', dz: 'khel' }, { fr: 'blanc', ar: 'أَبْيَض', dz: 'byed' },
-    { fr: 'gris', ar: 'رَمَادِيّ', dz: 'gri' }, { fr: 'marron', ar: 'بُنِّيّ', dz: 'qehwi' },
+    { fr: 'noir', ar: 'أَسْوَد', dz: 'k7el' }, { fr: 'blanc', ar: 'أَبْيَض', dz: 'byed' },
+    { fr: 'gris', ar: 'رَمَادِيّ', dz: 'gri' }, { fr: 'marron', ar: 'بُنِّيّ', dz: '9ehwi' },
   ],
   'Animaux': [
-    { fr: 'chat', ar: 'قِطَّة', dz: 'qett' }, { fr: 'chien', ar: 'كَلْب', dz: 'kelb' },
-    { fr: 'cheval', ar: 'حِصَان', dz: '3oud' }, { fr: 'âne', ar: 'حِمَار', dz: 'hmar' },
-    { fr: 'mouton', ar: 'خَرُوف', dz: 'hawli' }, { fr: 'vache', ar: 'بَقَرَة', dz: 'begrah' },
-    { fr: 'poule', ar: 'دَجَاجَة', dz: 'djajah' }, { fr: 'chameau', ar: 'جَمَل', dz: 'jmel' },
-    { fr: 'oiseau', ar: 'طَائِر', dz: 'tir' }, { fr: 'poisson', ar: 'سَمَكَة', dz: 'houtah' },
+    { fr: 'chat', ar: 'قِطَّة', dz: '9ett' }, { fr: 'chien', ar: 'كَلْب', dz: 'kelb' },
+    { fr: 'cheval', ar: 'حِصَان', dz: '3oud' }, { fr: 'âne', ar: 'حِمَار', dz: '7mar' },
+    { fr: 'mouton', ar: 'خَرُوف', dz: '7awli' }, { fr: 'vache', ar: 'بَقَرَة', dz: 'begra' },
+    { fr: 'poule', ar: 'دَجَاجَة', dz: 'djaja' }, { fr: 'chameau', ar: 'جَمَل', dz: 'jmel' },
+    { fr: 'oiseau', ar: 'طَائِر', dz: 'tir' }, { fr: 'poisson', ar: 'سَمَكَة', dz: '7outa' },
   ],
   'Corps humain': [
     { fr: 'tête', ar: 'رَأْس', dz: 'ras' }, { fr: 'œil', ar: 'عَيْن', dz: '3in' },
     { fr: 'main', ar: 'يَد', dz: 'yedd' }, { fr: 'pied', ar: 'قَدَم', dz: 'rjel' },
     { fr: 'bouche', ar: 'فَم', dz: 'fomm' }, { fr: 'nez', ar: 'أَنْف', dz: 'nif' },
     { fr: 'cheveux', ar: 'شَعْر', dz: 'ch3ar' }, { fr: 'ventre', ar: 'بَطْن', dz: 'kerch' },
-    { fr: 'cœur', ar: 'قَلْب', dz: 'qelb' }, { fr: 'oreille', ar: 'أُذُن', dz: 'wden' },
+    { fr: 'cœur', ar: 'قَلْب', dz: '9elb' }, { fr: 'oreille', ar: 'أُذُن', dz: 'wden' },
   ],
   'Famille': [
     { fr: 'père', ar: 'أَب', dz: 'bba' }, { fr: 'mère', ar: 'أُمّ', dz: 'yemma' },
     { fr: 'frère', ar: 'أَخ', dz: 'khou' }, { fr: 'sœur', ar: 'أُخْت', dz: 'okht' },
     { fr: 'fils', ar: 'اِبْن', dz: 'weld' }, { fr: 'fille', ar: 'بِنْت', dz: 'bent' },
-    { fr: 'grand-père', ar: 'جَدّ', dz: 'jedd' }, { fr: 'grand-mère', ar: 'جَدَّة', dz: 'hennah' },
+    { fr: 'grand-père', ar: 'جَدّ', dz: 'jedd' }, { fr: 'grand-mère', ar: 'جَدَّة', dz: '7enna' },
     { fr: 'mari', ar: 'زَوْج', dz: 'rajel' }, { fr: 'épouse', ar: 'زَوْجَة', dz: 'mra' },
   ],
   'Nourriture': [
     { fr: 'pain', ar: 'خُبْز', dz: 'khobz' }, { fr: 'eau', ar: 'مَاء', dz: 'ma' },
-    { fr: 'lait', ar: 'حَلِيب', dz: 'hlib' }, { fr: 'viande', ar: 'لَحْم', dz: 'lhem' },
-    { fr: 'œuf', ar: 'بَيْضَة', dz: 'bidah' }, { fr: 'thé', ar: 'شَاي', dz: 'atay' },
-    { fr: 'café', ar: 'قَهْوَة', dz: 'qehwah' }, { fr: 'sucre', ar: 'سُكَّر', dz: 'sokkar' },
-    { fr: 'sel', ar: 'مِلْح', dz: 'melhah' }, { fr: 'pomme', ar: 'تُفَّاحَة', dz: 'teffahah' },
+    { fr: 'lait', ar: 'حَلِيب', dz: '7lib' }, { fr: 'viande', ar: 'لَحْم', dz: 'l7em' },
+    { fr: 'œuf', ar: 'بَيْضَة', dz: 'bida' }, { fr: 'thé', ar: 'شَاي', dz: 'atay' },
+    { fr: 'café', ar: 'قَهْوَة', dz: '9ehwa' }, { fr: 'sucre', ar: 'سُكَّر', dz: 'sokkar' },
+    { fr: 'sel', ar: 'مِلْح', dz: 'mel7a' }, { fr: 'pomme', ar: 'تُفَّاحَة', dz: 'teffa7a' },
   ],
 };
 
