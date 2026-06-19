@@ -36,23 +36,89 @@ const GENDER_LABEL = { m: 'masc.', f: 'fém.', n: '' };
 
 // ============================================================
 //  Données de démarrage (seed) — FR / Arabe (MSA) / Darija
-//  Ajoutées une seule fois aux sections par défaut existantes.
+//  Seed versionné : on n'ajoute que les entrées manquantes
+//  (déduplication par contenu), sans toucher aux ajouts perso.
 // ============================================================
+const CURRENT_SEED_VERSION = 2;
+
+// Génère les nombres 1→100, puis 200…900, 999, 1000…9000.
+function buildNumbers() {
+  const frU = ['zéro', 'un', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'huit', 'neuf'];
+  const frT = ['dix', 'onze', 'douze', 'treize', 'quatorze', 'quinze', 'seize', 'dix-sept', 'dix-huit', 'dix-neuf'];
+  const frTens = { 2: 'vingt', 3: 'trente', 4: 'quarante', 5: 'cinquante', 6: 'soixante' };
+  const frHund = { 100: 'cent', 200: 'deux cents', 300: 'trois cents', 400: 'quatre cents', 500: 'cinq cents', 600: 'six cents', 700: 'sept cents', 800: 'huit cents', 900: 'neuf cents' };
+  const frThou = { 1000: 'mille', 2000: 'deux mille', 3000: 'trois mille', 4000: 'quatre mille', 5000: 'cinq mille', 6000: 'six mille', 7000: 'sept mille', 8000: 'huit mille', 9000: 'neuf mille' };
+
+  const arU = ['صفر', 'واحد', 'اثنان', 'ثلاثة', 'أربعة', 'خمسة', 'ستة', 'سبعة', 'ثمانية', 'تسعة'];
+  const arTeen = ['عشرة', 'أحد عشر', 'اثنا عشر', 'ثلاثة عشر', 'أربعة عشر', 'خمسة عشر', 'ستة عشر', 'سبعة عشر', 'ثمانية عشر', 'تسعة عشر'];
+  const arTens = { 2: 'عشرون', 3: 'ثلاثون', 4: 'أربعون', 5: 'خمسون', 6: 'ستون', 7: 'سبعون', 8: 'ثمانون', 9: 'تسعون' };
+  const arHund = { 100: 'مئة', 200: 'مئتان', 300: 'ثلاثمئة', 400: 'أربعمئة', 500: 'خمسمئة', 600: 'ستمئة', 700: 'سبعمئة', 800: 'ثمانمئة', 900: 'تسعمئة' };
+  const arThou = { 1000: 'ألف', 2000: 'ألفان', 3000: 'ثلاثة آلاف', 4000: 'أربعة آلاف', 5000: 'خمسة آلاف', 6000: 'ستة آلاف', 7000: 'سبعة آلاف', 8000: 'ثمانية آلاف', 9000: 'تسعة آلاف' };
+
+  const dzU = ['صفر', 'واحد', 'جوج', 'تلاتة', 'ربعة', 'خمسة', 'ستة', 'سبعة', 'تمنية', 'تسعود'];
+  const dzUc = ['', 'واحد', 'تنين', 'تلاتة', 'ربعة', 'خمسة', 'ستة', 'سبعة', 'تمنية', 'تسعة']; // unités en composé (21-99)
+  const dzTeen = ['عشرة', 'حضاش', 'طناش', 'تلطاش', 'ربعطاش', 'خمسطاش', 'سطاش', 'سبعطاش', 'تمنطاش', 'تسعطاش'];
+  const dzTens = { 2: 'عشرين', 3: 'تلاتين', 4: 'ربعين', 5: 'خمسين', 6: 'ستين', 7: 'سبعين', 8: 'تمانين', 9: 'تسعين' };
+  const dzHund = { 100: 'مية', 200: 'ميتين', 300: 'تلت مية', 400: 'ربع مية', 500: 'خمس مية', 600: 'ست مية', 700: 'سبع مية', 800: 'تمن مية', 900: 'تسع مية' };
+  const dzThou = { 1000: 'ألف', 2000: 'ألفين', 3000: 'تلت آلاف', 4000: 'ربع آلاف', 5000: 'خمس آلاف', 6000: 'ست آلاف', 7000: 'سبع آلاف', 8000: 'تمن آلاف', 9000: 'تسع آلاف' };
+
+  function fr(n) {
+    if (n >= 1000) return frThou[n];
+    if (n === 999) return 'neuf cent quatre-vingt-dix-neuf';
+    if (n >= 100) return frHund[n];
+    if (n < 10) return frU[n];
+    if (n < 20) return frT[n - 10];
+    if (n < 70) { const t = Math.floor(n / 10), u = n % 10; if (u === 0) return frTens[t]; if (u === 1) return frTens[t] + ' et un'; return frTens[t] + '-' + frU[u]; }
+    if (n < 80) { if (n === 71) return 'soixante et onze'; return 'soixante-' + frT[n - 70]; }
+    if (n < 90) { const u = n - 80; if (u === 0) return 'quatre-vingts'; return 'quatre-vingt-' + frU[u]; }
+    return 'quatre-vingt-' + frT[n - 90];
+  }
+  function ar(n) {
+    if (n >= 1000) return arThou[n];
+    if (n === 999) return 'تسعمئة وتسعة وتسعون';
+    if (n >= 100) return arHund[n];
+    if (n < 10) return arU[n];
+    if (n < 20) return arTeen[n - 10];
+    const t = Math.floor(n / 10), u = n % 10;
+    if (u === 0) return arTens[t];
+    return arU[u] + ' و' + arTens[t];
+  }
+  function dz(n) {
+    if (n >= 1000) return dzThou[n];
+    if (n === 999) return 'تسع مية وتسعة وتسعين';
+    if (n >= 100) return dzHund[n];
+    if (n < 10) return dzU[n];
+    if (n < 20) return dzTeen[n - 10];
+    const t = Math.floor(n / 10), u = n % 10;
+    if (u === 0) return dzTens[t];
+    return dzUc[u] + ' و' + dzTens[t];
+  }
+
+  const list = [];
+  for (let n = 1; n <= 100; n++) list.push(n);
+  [200, 300, 400, 500, 600, 700, 800, 900, 999, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000].forEach((n) => list.push(n));
+  return list.map((n) => ({ fr: fr(n), ar: ar(n), dz: dz(n) }));
+}
+
 const SEED_WORDS = {
+  // Alphabet arabe complet (le glyphe est identique en MSA et en darija).
   'Lettres': [
     { fr: 'Alif', ar: 'أ', dz: 'أ' }, { fr: 'Ba', ar: 'ب', dz: 'ب' },
     { fr: 'Ta', ar: 'ت', dz: 'ت' }, { fr: 'Tha', ar: 'ث', dz: 'ث' },
     { fr: 'Jim', ar: 'ج', dz: 'ج' }, { fr: 'Ha', ar: 'ح', dz: 'ح' },
     { fr: 'Kha', ar: 'خ', dz: 'خ' }, { fr: 'Dal', ar: 'د', dz: 'د' },
-    { fr: 'Ra', ar: 'ر', dz: 'ر' }, { fr: 'Sin', ar: 'س', dz: 'س' },
+    { fr: 'Dhal', ar: 'ذ', dz: 'ذ' }, { fr: 'Ra', ar: 'ر', dz: 'ر' },
+    { fr: 'Zay', ar: 'ز', dz: 'ز' }, { fr: 'Sin', ar: 'س', dz: 'س' },
+    { fr: 'Shin', ar: 'ش', dz: 'ش' }, { fr: 'Sad', ar: 'ص', dz: 'ص' },
+    { fr: 'Dad', ar: 'ض', dz: 'ض' }, { fr: 'Ṭa', ar: 'ط', dz: 'ط' },
+    { fr: 'Ẓa', ar: 'ظ', dz: 'ظ' }, { fr: 'Ayn', ar: 'ع', dz: 'ع' },
+    { fr: 'Ghayn', ar: 'غ', dz: 'غ' }, { fr: 'Fa', ar: 'ف', dz: 'ف' },
+    { fr: 'Qaf', ar: 'ق', dz: 'ق' }, { fr: 'Kaf', ar: 'ك', dz: 'ك' },
+    { fr: 'Lam', ar: 'ل', dz: 'ل' }, { fr: 'Mim', ar: 'م', dz: 'م' },
+    { fr: 'Nun', ar: 'ن', dz: 'ن' }, { fr: 'Hâ', ar: 'ه', dz: 'ه' },
+    { fr: 'Waw', ar: 'و', dz: 'و' }, { fr: 'Ya', ar: 'ي', dz: 'ي' },
   ],
-  'Nombres': [
-    { fr: 'un', ar: 'واحد', dz: 'واحد' }, { fr: 'deux', ar: 'اثنان', dz: 'جوج' },
-    { fr: 'trois', ar: 'ثلاثة', dz: 'تلاتة' }, { fr: 'quatre', ar: 'أربعة', dz: 'ربعة' },
-    { fr: 'cinq', ar: 'خمسة', dz: 'خمسة' }, { fr: 'six', ar: 'ستة', dz: 'ستة' },
-    { fr: 'sept', ar: 'سبعة', dz: 'سبعة' }, { fr: 'huit', ar: 'ثمانية', dz: 'تمنية' },
-    { fr: 'neuf', ar: 'تسعة', dz: 'تسعود' }, { fr: 'dix', ar: 'عشرة', dz: 'عشرة' },
-  ],
+  'Nombres': buildNumbers(),
   'Couleurs': [
     { fr: 'rouge', ar: 'أحمر', dz: 'حمر' }, { fr: 'bleu', ar: 'أزرق', dz: 'زرق' },
     { fr: 'vert', ar: 'أخضر', dz: 'خضر' }, { fr: 'jaune', ar: 'أصفر', dz: 'صفر' },
@@ -186,16 +252,25 @@ function init() {
   return state;
 }
 
-// Remplit une seule fois les sections par défaut encore présentes.
+// Ajoute les entrées de seed manquantes aux sections par défaut encore
+// présentes. Déduplique par contenu : ne crée jamais de doublon et ne
+// retire jamais les mots ajoutés par l'utilisateur.
 function seedDefaultsIfNeeded() {
-  if (state.seeded) return;
+  if ((state.seedVersion || 0) >= CURRENT_SEED_VERSION) return;
   const byName = {};
   state.sections.forEach((s) => { byName[s.name] = s; });
 
   Object.entries(SEED_WORDS).forEach(([sectionName, items]) => {
     const sec = byName[sectionName];
     if (!sec) return;
+    const existing = new Set(
+      state.words.filter((w) => w.sectionId === sec.id && w.type !== 'verb')
+        .map((w) => `${w.fr}|${w.ar}|${w.dz}`)
+    );
     items.forEach((it) => {
+      const key = `${it.fr}|${it.ar}|${it.dz}`;
+      if (existing.has(key)) return;
+      existing.add(key);
       state.words.push({
         id: uid(), sectionId: sec.id, type: 'word', missCount: 0, seenCount: 0,
         fr: it.fr, ar: it.ar, ar_tr: '', dz: it.dz, dz_tr: '',
@@ -206,7 +281,12 @@ function seedDefaultsIfNeeded() {
   Object.entries(SEED_VERBS).forEach(([sectionName, items]) => {
     const sec = byName[sectionName];
     if (!sec) return;
+    const existing = new Set(
+      state.words.filter((w) => w.sectionId === sec.id && w.type === 'verb').map((w) => w.fr)
+    );
     items.forEach((v) => {
+      if (existing.has(v.fr)) return;
+      existing.add(v.fr);
       state.words.push({
         id: uid(), sectionId: sec.id, type: 'verb', missCount: 0, seenCount: 0,
         fr: v.fr, ar_base: v.ar_base, ar_base_tr: '', dz_base: v.dz_base, dz_base_tr: '', conj: v.conj,
@@ -214,7 +294,8 @@ function seedDefaultsIfNeeded() {
     });
   });
 
-  state.seeded = true;
+  state.seedVersion = CURRENT_SEED_VERSION;
+  state.seeded = true; // compat ancienne clé
 }
 
 function persist() {
