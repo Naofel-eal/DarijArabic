@@ -591,6 +591,8 @@ function renderReviewQuestion() {
     const input = h('input', {
       type: 'text', dir: rtl ? 'rtl' : 'ltr', class: rtl ? 'rtl' : '',
       placeholder: LANG_LABEL[lang], autocomplete: 'off', autocapitalize: 'none',
+      readonly: q.revealed ? true : undefined,
+      value: q.revealed ? (q.answers[lang] || '') : undefined,
     });
     inputs[lang] = input;
     answersWrap.appendChild(h('div', { class: 'field' }, [
@@ -599,18 +601,49 @@ function renderReviewQuestion() {
   });
   els.app.appendChild(answersWrap);
 
+  const isLast = s.index + 1 >= s.questions.length;
+
+  // Phase 2 : la réponse a été validée → on affiche la correction sous les champs
+  if (q.revealed) {
+    const lines = [];
+    targets.forEach((lang) => {
+      const good = matchAnswer(q.answers[lang], it[lang], it[lang + '_tr']);
+      const expected = it[lang] + (it[lang + '_tr'] ? ` (${it[lang + '_tr']})` : '');
+      lines.push(h('div', { class: 'correction-line' }, [
+        h('strong', {}, `${LANG_LABEL[lang]} : `),
+        good
+          ? h('span', { class: 'ok' }, `✓ ${q.answers[lang] || ''}`)
+          : h('span', {}, [
+              q.answers[lang] ? h('span', { class: 'you' }, `✗ ${q.answers[lang]} → `) : h('span', { class: 'you' }, '(vide) → '),
+              h('span', { class: 'ok' }, expected),
+            ]),
+      ]));
+    });
+    els.app.appendChild(h('div', { class: `correction-item ${q.result ? 'good' : 'bad'}` }, [
+      h('div', { class: 'ci-fr' }, q.result ? '✅ Correct' : '❌ Incorrect'),
+      ...lines,
+    ]));
+
+    els.app.appendChild(h('button', { class: 'btn btn-primary btn-block', onClick: () => {
+      s.index++;
+      if (s.index >= s.questions.length) s.finished = true;
+      render();
+    } }, isLast ? 'Terminer' : 'Suivant'));
+    return;
+  }
+
+  // Phase 1 : saisie → « Valider » révèle la correction sans changer de question
   els.app.appendChild(h('button', { class: 'btn btn-primary btn-block', onClick: () => {
     targets.forEach((lang) => { q.answers[lang] = inputs[lang].value.trim(); });
     // Évaluation : correct si toutes les cibles correspondent (tolérance translittération)
     const ok = targets.every((lang) => matchAnswer(q.answers[lang], it[lang], it[lang + '_tr']));
     q.result = ok;
     q.targets = targets;
+    q.revealed = true;
     DB.recordResult(it.id, ok);
     if (ok) s.score++;
-    s.index++;
-    if (s.index >= s.questions.length) s.finished = true;
     render();
-  } }, s.index + 1 >= s.questions.length ? 'Terminer' : 'Valider'));
+  } }, 'Valider'));
 
   setTimeout(() => inputs[targets[0]]?.focus(), 50);
 }
