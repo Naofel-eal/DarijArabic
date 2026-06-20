@@ -415,8 +415,9 @@ function renderVerbForm(section, existing) {
       person.genders.forEach((g) => {
         const cellKey = `${person.key}_${g}`;
         const cell = conj[tense.key]?.[cellKey] || { ar: '', dz: '' };
-        const arIn = h('input', { type: 'text', dir: 'rtl', class: 'rtl', value: cell.ar || '', placeholder: 'AR' });
-        const dzIn = h('input', { type: 'text', value: cell.dz || '', placeholder: 'MA' });
+        const noCorrect = { spellcheck: 'false', autocorrect: 'off', autocapitalize: 'none', autocomplete: 'off' };
+        const arIn = h('input', { type: 'text', dir: 'rtl', class: 'rtl', value: cell.ar || '', placeholder: 'AR', ...noCorrect });
+        const dzIn = h('input', { type: 'text', value: cell.dz || '', placeholder: 'MA', ...noCorrect });
         conjInputs[`${tense.key}.${cellKey}`] = { ar: arIn, dz: dzIn };
         const genderLabel = DB.GENDER_LABEL[g] ? ` — ${DB.GENDER_LABEL[g]}` : '';
         block.appendChild(h('div', { class: 'conj-row' }, [
@@ -466,6 +467,12 @@ function inputField(label, value, opts = {}) {
     placeholder: opts.placeholder || '',
     class: opts.rtl ? 'rtl' : '',
     dir: opts.rtl ? 'rtl' : 'ltr',
+    // Pas de correction auto : on saisit du vocabulaire (arabe, darija…),
+    // l'autocorrect/autocapitalize est plus gênant qu'utile.
+    spellcheck: 'false',
+    autocorrect: 'off',
+    autocapitalize: 'none',
+    autocomplete: 'off',
   });
   return { el, label };
 }
@@ -594,6 +601,7 @@ function renderReviewQuestion() {
     const input = h('input', {
       type: 'text', dir: rtl ? 'rtl' : 'ltr', class: rtl ? 'rtl' : '',
       placeholder: LANG_LABEL[lang], autocomplete: 'off', autocapitalize: 'none',
+      spellcheck: 'false', autocorrect: 'off',
       readonly: q.revealed ? true : undefined,
       value: q.revealed ? (q.answers[lang] || '') : undefined,
     });
