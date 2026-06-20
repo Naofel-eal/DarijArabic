@@ -390,8 +390,8 @@ function renderWordFormSimple(section, existing) {
 function renderVerbForm(section, existing) {
   const conj = existing?.conj || DB.emptyConjugation();
   const fr = inputField('Infinitif français', existing?.fr, { placeholder: 'ex. manger' });
-  const arBase = inputField('Base AR', existing?.ar_base, { rtl: true, placeholder: 'أكل' });
-  const dzBase = inputField('Base MA', existing?.dz_base, { placeholder: 'kla' });
+  const arBase = inputField('Base AR', existing?.ar_base, { rtl: true, noCorrect: true, placeholder: 'أكل' });
+  const dzBase = inputField('Base MA', existing?.dz_base, { noCorrect: true, placeholder: 'kla' });
 
   // Stocke les inputs de conjugaison pour la lecture à l'enregistrement
   const conjInputs = {};
