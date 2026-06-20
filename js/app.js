@@ -61,15 +61,18 @@ function emojiFor(section) {
 
 // --------- Navigation ----------
 function navigate(name, params = {}, push = true) {
-  if (push) historyStack.push({ ...route });
+  // On mémorise la position de scroll de l'écran qu'on quitte pour la
+  // restaurer si l'utilisateur revient en arrière.
+  if (push) historyStack.push({ ...route, scroll: els.app.scrollTop });
   route = { name, params };
   render();
 }
 
 function goBack() {
   if (historyStack.length) {
-    route = historyStack.pop();
-    render();
+    const prev = historyStack.pop();
+    route = { name: prev.name, params: prev.params };
+    render(prev.scroll || 0);
   } else {
     navigate('home', {}, false);
   }
@@ -85,7 +88,7 @@ document.querySelectorAll('.tab').forEach((tab) => {
 });
 
 // --------- Rendu principal ----------
-function render() {
+function render(restoreScroll = 0) {
   clear(els.app);
   els.headerAction.hidden = true;
   els.headerAction.onclick = null;
@@ -100,7 +103,7 @@ function render() {
 
   const view = VIEWS[route.name] || VIEWS.home;
   view(route.params);
-  els.app.scrollTop = 0;
+  els.app.scrollTop = restoreScroll;
 }
 
 // ============================================================
