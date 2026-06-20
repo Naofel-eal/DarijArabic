@@ -359,8 +359,8 @@ function viewWordForm({ sectionId, wordId }) {
 
 function renderWordFormSimple(section, existing) {
   const fr = inputField('Français', existing?.fr, { placeholder: 'ex. maison' });
-  const ar = inputField('Arabe (MSA)', existing?.ar, { rtl: true, placeholder: 'بيت' });
-  const dz = inputField('Darija', existing?.dz, { placeholder: 'dar' });
+  const ar = inputField('Arabe (MSA)', existing?.ar, { rtl: true, noCorrect: true, placeholder: 'بيت' });
+  const dz = inputField('Darija', existing?.dz, { noCorrect: true, placeholder: 'dar' });
 
   const form = h('div', { class: 'form' }, [
     h('div', { class: 'field' }, [h('label', {}, 'Français *'), fr.el]),
@@ -461,18 +461,18 @@ function renderVerbForm(section, existing) {
 }
 
 function inputField(label, value, opts = {}) {
+  // Pas de correction auto sur l'arabe/darija (opts.noCorrect) : l'autocorrect
+  // est plus gênant qu'utile. Le français garde le correcteur.
+  const noCorrect = opts.noCorrect
+    ? { spellcheck: 'false', autocorrect: 'off', autocapitalize: 'none', autocomplete: 'off' }
+    : {};
   const el = h('input', {
     type: 'text',
     value: value || '',
     placeholder: opts.placeholder || '',
     class: opts.rtl ? 'rtl' : '',
     dir: opts.rtl ? 'rtl' : 'ltr',
-    // Pas de correction auto : on saisit du vocabulaire (arabe, darija…),
-    // l'autocorrect/autocapitalize est plus gênant qu'utile.
-    spellcheck: 'false',
-    autocorrect: 'off',
-    autocapitalize: 'none',
-    autocomplete: 'off',
+    ...noCorrect,
   });
   return { el, label };
 }
