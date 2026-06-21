@@ -340,6 +340,51 @@ body {
 .prompt-tr { color: var(--muted); font-style: italic; margin-top: 6px; }
 .review-answers { display: flex; flex-direction: column; gap: 14px; margin: 20px 0; }
 
+/* Paramètres de conjugaison affichés dans la consigne (temps / personne) */
+.verb-params {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+.verb-chip {
+  background: var(--teal-light);
+  color: var(--teal-dark);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+/* Sélecteur segmenté (langue cible de la révision) */
+.seg-control {
+  display: flex;
+  gap: 6px;
+  background: var(--sand);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 4px;
+}
+.seg-btn {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 10px;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.seg-btn.active {
+  background: var(--teal);
+  color: var(--white);
+  box-shadow: var(--shadow);
+}
+
 .correction-item {
   background: var(--white);
   border-radius: 12px;

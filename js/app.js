@@ -490,6 +490,22 @@ function deleteWordFlow(word, section) {
 // ============================================================
 let reviewSession = null;
 
+// Langue cible de la révision : on ne révise qu'une langue à la fois
+// (Darija OU Arabe littéraire). Le dernier choix est mémorisé.
+const TARGET_LABEL = { ar: 'Arabe littéraire', dz: 'Darija' };
+const REVIEW_TARGET_KEY = 'darija-arabic-review-target';
+
+function getSavedTarget() {
+  try {
+    const t = localStorage.getItem(REVIEW_TARGET_KEY);
+    return t === 'ar' || t === 'dz' ? t : 'dz';
+  } catch (_) { return 'dz'; }
+}
+
+function saveTarget(t) {
+  try { localStorage.setItem(REVIEW_TARGET_KEY, t); } catch (_) {}
+}
+
 function viewReview() {
   els.title.textContent = 'Révision';
   if (reviewSession) {
@@ -499,33 +515,88 @@ function viewReview() {
   }
 }
 
-function reviewableItems(sectionId) {
-  // Transforme chaque mot/verbe en items révisables {id, fr, ar, ar_tr, dz, dz_tr, missCount}
-  let words = sectionId ? DB.getWords(sectionId) : DB.getAllWords();
-  return words.map((w) => {
-    if (w.type === 'verb') {
-      return { id: w.id, fr: w.fr, ar: w.ar_base, ar_tr: w.ar_base_tr, dz: w.dz_base, dz_tr: w.dz_base_tr, missCount: w.missCount || 0 };
-    }
-    return { id: w.id, fr: w.fr, ar: w.ar, ar_tr: w.ar_tr, dz: w.dz, dz_tr: w.dz_tr, missCount: w.missCount || 0 };
-  }).filter((it) => it.fr || it.ar || it.dz);
+// Construit une question de traduction pour un mot simple vers la langue cible.
+// On montre le français (ou, à défaut, l'autre langue) et on saisit la cible.
+function buildWordQuestion(w, target) {
+  const expected = (w[target] || '').trim();
+  if (!expected) return null; // pas de traduction dans la langue cible → on saute
+  let promptLang = (w.fr && w.fr.trim()) ? 'fr'
+    : ['ar', 'dz'].find((l) => l !== target && w[l] && w[l].trim());
+  if (!promptLang) return null;
+  return {
+    kind: 'word', id: w.id, fr: w.fr || '', target,
+    promptLang, promptVal: w[promptLang], promptTr: w[promptLang + '_tr'] || '',
+    expected, expectedTr: w[target + '_tr'] || '',
+    missCount: w.missCount || 0, answer: '', revealed: false, result: null,
+  };
+}
+
+// Construit une question de conjugaison : on demande de conjuguer le verbe
+// (donné en français) à un temps et une personne tirés au hasard, vers la cible.
+function buildVerbQuestion(w, target) {
+  const cells = [];
+  if (w.conj) {
+    DB.TENSES.forEach((t) => {
+      DB.PERSONS.forEach((p) => {
+        p.genders.forEach((g) => {
+          const cell = w.conj[t.key]?.[`${p.key}_${g}`];
+          const val = cell && (cell[target] || '').trim();
+          if (val) cells.push({ tense: t, person: p, gender: g, expected: val });
+        });
+      });
+    });
+  }
+  if (!cells.length) return null;
+  const c = cells[Math.floor(Math.random() * cells.length)];
+  return {
+    kind: 'verb', id: w.id, fr: w.fr || '(verbe)', target,
+    tense: c.tense, person: c.person, gender: c.gender,
+    expected: c.expected, expectedTr: '',
+    missCount: w.missCount || 0, answer: '', revealed: false, result: null,
+  };
+}
+
+// Liste des questions disponibles pour une portée et une langue cible.
+function buildQuestions(sectionId, target) {
+  const words = sectionId ? DB.getWords(sectionId) : DB.getAllWords();
+  return words
+    .map((w) => (w.type === 'verb' ? buildVerbQuestion(w, target) : buildWordQuestion(w, target)))
+    .filter(Boolean);
 }
 
 function renderReviewSetup() {
   const sections = DB.getSections().filter((s) => s.count > 0);
-  const total = reviewableItems(null).length;
+  const total = DB.getAllWords().length;
 
   const sectionSelect = h('select', {}, [
     h('option', { value: '' }, `Toutes les sections (${total} mots)`),
     ...sections.map((s) => h('option', { value: s.id }, `${s.name} (${s.count})`)),
   ]);
 
+  // Sélecteur de langue cible (segmenté). Le dernier choix est présélectionné.
+  let target = getSavedTarget();
+  const seg = h('div', { class: 'seg-control' });
+  const buttons = {};
+  ['dz', 'ar'].forEach((t) => {
+    const btn = h('button', {
+      class: `seg-btn ${t === target ? 'active' : ''}`,
+      onClick: () => {
+        target = t;
+        Object.entries(buttons).forEach(([k, b]) => b.classList.toggle('active', k === t));
+      },
+    }, TARGET_LABEL[t]);
+    buttons[t] = btn;
+    seg.appendChild(btn);
+  });
+
   els.app.appendChild(h('div', { class: 'review-setup' }, [
     h('div', { class: 'review-card' }, [
       h('div', { style: 'font-size:2.5rem;margin-bottom:10px' }, '🎯'),
       h('h2', { style: 'margin-bottom:8px' }, 'Session de révision'),
       h('p', { style: 'color:var(--muted);line-height:1.5' },
-        '10 mots tirés au hasard. On vous montre une langue, vous saisissez les deux autres. Les mots souvent ratés reviennent plus souvent.'),
+        '10 questions tirées au hasard. On vous montre le français, vous traduisez dans la langue choisie. Pour les verbes, on indique le temps et la personne à conjuguer. Les éléments souvent ratés reviennent plus souvent.'),
     ]),
+    h('div', { class: 'field' }, [h('label', {}, 'Langue cible'), seg]),
     h('div', { class: 'field' }, [h('label', {}, 'Portée'), sectionSelect]),
     total === 0
       ? h('div', { class: 'empty-state' }, [
@@ -533,39 +604,34 @@ function renderReviewSetup() {
           h('p', {}, 'Ajoutez d\'abord quelques mots dans vos sections pour pouvoir réviser.'),
           h('button', { class: 'btn btn-primary', onClick: () => { historyStack = []; navigate('home', {}, false); } }, 'Aller aux sections'),
         ])
-      : h('button', { class: 'btn btn-accent btn-block', onClick: () => startReview(sectionSelect.value || null) }, 'Démarrer la session'),
+      : h('button', { class: 'btn btn-accent btn-block', onClick: () => startReview(sectionSelect.value || null, target) }, 'Démarrer la session'),
   ]));
 }
 
-function startReview(sectionId) {
-  let pool = reviewableItems(sectionId);
-  if (pool.length === 0) { toast('Aucun mot à réviser'); return; }
+function startReview(sectionId, target) {
+  saveTarget(target);
+  const pool = buildQuestions(sectionId, target);
+  if (pool.length === 0) { toast(`Aucun élément à réviser en ${TARGET_LABEL[target].toLowerCase()}`); return; }
 
-  // Priorisation : on duplique les items ratés pour augmenter leur probabilité.
+  // Priorisation : on duplique les questions ratées pour augmenter leur probabilité.
   const weighted = [];
-  pool.forEach((it) => {
-    const weight = 1 + Math.min(3, it.missCount || 0);
-    for (let i = 0; i < weight; i++) weighted.push(it);
+  pool.forEach((q) => {
+    const weight = 1 + Math.min(3, q.missCount || 0);
+    for (let i = 0; i < weight; i++) weighted.push(q);
   });
 
-  // Tirage sans doublon, max 10
+  // Tirage sans doublon (par élément), max 10
   const picked = [];
   const usedIds = new Set();
   const shuffled = weighted.sort(() => Math.random() - 0.5);
-  for (const it of shuffled) {
+  for (const q of shuffled) {
     if (picked.length >= 10) break;
-    if (usedIds.has(it.id)) continue;
-    usedIds.add(it.id);
-    // Choix de la langue affichée parmi celles renseignées
-    const available = ['fr', 'ar', 'dz'].filter((l) => it[l] && it[l].trim());
-    if (available.length < 2) continue; // besoin d'au moins 2 langues
-    const promptLang = available[Math.floor(Math.random() * available.length)];
-    picked.push({ item: it, promptLang, answers: {}, result: null });
+    if (usedIds.has(q.id)) continue;
+    usedIds.add(q.id);
+    picked.push(q);
   }
 
-  if (picked.length === 0) { toast('Il faut au moins 2 langues renseignées par mot'); return; }
-
-  reviewSession = { questions: picked, index: 0, finished: false, score: 0 };
+  reviewSession = { questions: picked, index: 0, finished: false, score: 0, target };
   render();
 }
 
@@ -574,8 +640,8 @@ const LANG_LABEL = { fr: 'Français', ar: 'Arabe', dz: 'Darija' };
 function renderReviewQuestion() {
   const s = reviewSession;
   const q = s.questions[s.index];
-  const it = q.item;
-  const targets = ['fr', 'ar', 'dz'].filter((l) => l !== q.promptLang && it[l] && it[l].trim());
+  const targetLabel = TARGET_LABEL[q.target];
+  const rtl = q.target === 'ar';
 
   els.title.textContent = `Révision ${s.index + 1}/${s.questions.length}`;
   els.headerAction.hidden = false;
@@ -587,52 +653,54 @@ function renderReviewQuestion() {
     h('span', { style: `width:${(s.index / s.questions.length) * 100}%` }),
   ]));
 
-  const isArPrompt = q.promptLang === 'ar';
-  els.app.appendChild(h('div', { class: 'review-card' }, [
-    h('div', { class: 'prompt-lang' }, `Traduisez depuis : ${LANG_LABEL[q.promptLang]}`),
-    h('div', { class: `prompt-word ${isArPrompt ? 'ar-text' : ''}` }, it[q.promptLang]),
-    it[q.promptLang + '_tr'] ? h('div', { class: 'prompt-tr' }, it[q.promptLang + '_tr']) : null,
-  ]));
-
-  const inputs = {};
-  const answersWrap = h('div', { class: 'review-answers' });
-  targets.forEach((lang) => {
-    const rtl = lang === 'ar';
-    const input = h('input', {
-      type: 'text', dir: rtl ? 'rtl' : 'ltr', class: rtl ? 'rtl' : '',
-      placeholder: LANG_LABEL[lang], autocomplete: 'off', autocapitalize: 'none',
-      spellcheck: 'false', autocorrect: 'off',
-      readonly: q.revealed ? true : undefined,
-      value: q.revealed ? (q.answers[lang] || '') : undefined,
-    });
-    inputs[lang] = input;
-    answersWrap.appendChild(h('div', { class: 'field' }, [
-      h('label', {}, LANG_LABEL[lang]), input,
+  // Carte de consigne : verbe (FR + temps + personne) ou mot simple (FR).
+  if (q.kind === 'verb') {
+    const genderLabel = DB.GENDER_LABEL[q.gender] ? ` (${DB.GENDER_LABEL[q.gender]})` : '';
+    els.app.appendChild(h('div', { class: 'review-card' }, [
+      h('div', { class: 'prompt-lang' }, `Conjuguez en ${targetLabel}`),
+      h('div', { class: 'prompt-word' }, q.fr),
+      h('div', { class: 'verb-params' }, [
+        h('span', { class: 'verb-chip' }, q.tense.label),
+        h('span', { class: 'verb-chip' }, q.person.label + genderLabel),
+      ]),
     ]));
+  } else {
+    const isArPrompt = q.promptLang === 'ar';
+    els.app.appendChild(h('div', { class: 'review-card' }, [
+      h('div', { class: 'prompt-lang' }, `Traduisez en ${targetLabel}`),
+      h('div', { class: `prompt-word ${isArPrompt ? 'ar-text' : ''}` }, q.promptVal),
+      q.promptTr ? h('div', { class: 'prompt-tr' }, q.promptTr) : null,
+    ]));
+  }
+
+  const input = h('input', {
+    type: 'text', dir: rtl ? 'rtl' : 'ltr', class: rtl ? 'rtl' : '',
+    placeholder: targetLabel, autocomplete: 'off', autocapitalize: 'none',
+    spellcheck: 'false', autocorrect: 'off',
+    readonly: q.revealed ? true : undefined,
+    value: q.revealed ? (q.answer || '') : undefined,
   });
-  els.app.appendChild(answersWrap);
+  els.app.appendChild(h('div', { class: 'review-answers' }, [
+    h('div', { class: 'field' }, [h('label', {}, targetLabel), input]),
+  ]));
 
   const isLast = s.index + 1 >= s.questions.length;
 
-  // Phase 2 : la réponse a été validée → on affiche la correction sous les champs
+  // Phase 2 : la réponse a été validée → on affiche la correction
   if (q.revealed) {
-    const lines = [];
-    targets.forEach((lang) => {
-      const good = matchAnswer(q.answers[lang], it[lang], it[lang + '_tr']);
-      const expected = it[lang] + (it[lang + '_tr'] ? ` (${it[lang + '_tr']})` : '');
-      lines.push(h('div', { class: 'correction-line' }, [
-        h('strong', {}, `${LANG_LABEL[lang]} : `),
-        good
-          ? h('span', { class: 'ok' }, `✓ ${q.answers[lang] || ''}`)
-          : h('span', {}, [
-              q.answers[lang] ? h('span', { class: 'you' }, `✗ ${q.answers[lang]} → `) : h('span', { class: 'you' }, '(vide) → '),
-              h('span', { class: 'ok' }, expected),
-            ]),
-      ]));
-    });
+    const good = matchAnswer(q.answer, q.expected, q.expectedTr);
+    const expected = q.expected + (q.expectedTr ? ` (${q.expectedTr})` : '');
     els.app.appendChild(h('div', { class: `correction-item ${q.result ? 'good' : 'bad'}` }, [
       h('div', { class: 'ci-fr' }, q.result ? '✅ Correct' : '❌ Incorrect'),
-      ...lines,
+      h('div', { class: 'correction-line' }, [
+        h('strong', {}, `${targetLabel} : `),
+        good
+          ? h('span', { class: `ok ${rtl ? 'ar-text' : ''}` }, `✓ ${q.answer || ''}`)
+          : h('span', {}, [
+              q.answer ? h('span', { class: 'you' }, `✗ ${q.answer} → `) : h('span', { class: 'you' }, '(vide) → '),
+              h('span', { class: `ok ${rtl ? 'ar-text' : ''}` }, expected),
+            ]),
+      ]),
     ]));
 
     els.app.appendChild(h('button', { class: 'btn btn-primary btn-block', onClick: () => {
@@ -645,18 +713,16 @@ function renderReviewQuestion() {
 
   // Phase 1 : saisie → « Valider » révèle la correction sans changer de question
   els.app.appendChild(h('button', { class: 'btn btn-primary btn-block', onClick: () => {
-    targets.forEach((lang) => { q.answers[lang] = inputs[lang].value.trim(); });
-    // Évaluation : correct si toutes les cibles correspondent (tolérance translittération)
-    const ok = targets.every((lang) => matchAnswer(q.answers[lang], it[lang], it[lang + '_tr']));
+    q.answer = input.value.trim();
+    const ok = matchAnswer(q.answer, q.expected, q.expectedTr);
     q.result = ok;
-    q.targets = targets;
     q.revealed = true;
-    DB.recordResult(it.id, ok);
+    DB.recordResult(q.id, ok);
     if (ok) s.score++;
     render();
   } }, 'Valider'));
 
-  setTimeout(() => inputs[targets[0]]?.focus(), 50);
+  setTimeout(() => input.focus(), 50);
 }
 
 // Normalisation pour comparaison souple
@@ -692,29 +758,38 @@ function renderReviewResults() {
   els.app.appendChild(h('div', { class: 'section-title', style: 'margin-top:22px' }, 'Correction'));
 
   s.questions.forEach((q) => {
-    const it = q.item;
-    const targets = q.targets || [];
+    const targetLabel = TARGET_LABEL[q.target];
+    const rtl = q.target === 'ar';
+    const good = matchAnswer(q.answer, q.expected, q.expectedTr);
+    const expected = q.expected + (q.expectedTr ? ` (${q.expectedTr})` : '');
     const lines = [];
-    // Ligne du mot affiché
-    lines.push(h('div', { class: 'correction-line' }, [
-      h('strong', {}, `${LANG_LABEL[q.promptLang]} : `),
-      h('span', { class: q.promptLang === 'ar' ? 'ar-text' : '' }, it[q.promptLang]),
-    ]));
-    targets.forEach((lang) => {
-      const good = matchAnswer(q.answers[lang], it[lang], it[lang + '_tr']);
-      const expected = it[lang] + (it[lang + '_tr'] ? ` (${it[lang + '_tr']})` : '');
+
+    // Rappel de la consigne
+    if (q.kind === 'verb') {
+      const genderLabel = DB.GENDER_LABEL[q.gender] ? ` (${DB.GENDER_LABEL[q.gender]})` : '';
       lines.push(h('div', { class: 'correction-line' }, [
-        h('strong', {}, `${LANG_LABEL[lang]} : `),
-        good
-          ? h('span', { class: 'ok' }, `✓ ${q.answers[lang] || ''}`)
-          : h('span', {}, [
-              q.answers[lang] ? h('span', { class: 'you' }, `✗ ${q.answers[lang]} → `) : h('span', { class: 'you' }, '(vide) → '),
-              h('span', { class: 'ok' }, expected),
-            ]),
+        h('strong', {}, 'Consigne : '),
+        h('span', {}, `${q.tense.label}, ${q.person.label}${genderLabel}`),
       ]));
-    });
+    } else {
+      lines.push(h('div', { class: 'correction-line' }, [
+        h('strong', {}, `${LANG_LABEL[q.promptLang]} : `),
+        h('span', { class: q.promptLang === 'ar' ? 'ar-text' : '' }, q.promptVal),
+      ]));
+    }
+
+    lines.push(h('div', { class: 'correction-line' }, [
+      h('strong', {}, `${targetLabel} : `),
+      good
+        ? h('span', { class: `ok ${rtl ? 'ar-text' : ''}` }, `✓ ${q.answer || ''}`)
+        : h('span', {}, [
+            q.answer ? h('span', { class: 'you' }, `✗ ${q.answer} → `) : h('span', { class: 'you' }, '(vide) → '),
+            h('span', { class: `ok ${rtl ? 'ar-text' : ''}` }, expected),
+          ]),
+    ]));
+
     els.app.appendChild(h('div', { class: `correction-item ${q.result ? 'good' : 'bad'}` }, [
-      h('div', { class: 'ci-fr' }, it.fr || '—'),
+      h('div', { class: 'ci-fr' }, q.fr || '—'),
       ...lines,
     ]));
   });
